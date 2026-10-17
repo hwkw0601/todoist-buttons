@@ -567,7 +567,7 @@ function openItem(id){
     </div>
     <div class="row2">
       <div class="field"><label for="eDate">날짜</label><input id="eDate" type="date" value="${i.date||""}"></div>
-      <div class="field"><label for="eStart">시작 시간</label><select id="eStart">${timeOptions(i.start)}</select></div>
+      <div class="field"><label for="eStart">시작 시간</label><input id="eStart" type="time" step="300" value="${i.start!=null?hm(i.start):""}"></div>
     </div>
     <div class="field"><label for="eDl">마감일 (선택)</label><input id="eDl" type="date" value="${i.deadline||""}"></div>
     <label style="display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" id="eDone" ${i.done?"checked":""}> 완료</label>
@@ -576,7 +576,7 @@ function openItem(id){
   const dlg=$("dlgItem");
   $("eSave").onclick=()=>{
     const name=$("eName").value.trim(); if(!name){$("eName").focus();return}
-    const dur=$("eDur").value?+$("eDur").value:null, date=$("eDate").value||null, sv=$("eStart").value, start=(date&&sv!=="")?+sv:null;
+    const dur=$("eDur").value?+$("eDur").value:null, date=$("eDate").value||null, sv=$("eStart").value, start=(date&&sv)?toMin(sv):null;
     if(start!=null){
       if(!dur){toast("시간표에 놓으려면 소요시간을 정해주세요");$("eDur").focus();return}
       const bad=checkSlot(i,date,start,dur); if(bad){toast("놓을 수 없어요: "+bad);return}
