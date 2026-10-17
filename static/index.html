@@ -587,7 +587,7 @@ function openItem(id){
   };
   if(placed)$("eBack").onclick=()=>{i.start=null;dlg.close();save();render();pushSync(i);toast(`${md(i.date)} 날짜 칸으로 옮겼어요`)};
   let armed=false;
-  $("eDel").onclick=e=>{if(!armed){armed=true;e.target.textContent="한 번 더 누르면 삭제";return}S.items=S.items.filter(x=>x!==i);dlg.close();save();render()};
+  $("eDel").onclick=e=>{if(!armed){armed=true;e.target.textContent="한 번 더 누르면 삭제";return}const tid=i.todoistId;S.items=S.items.filter(x=>x!==i);dlg.close();save();render();if(tid)pushDelete(tid)};
   dlg.showModal();
 }
 
@@ -717,6 +717,12 @@ async function pushSync(item){
   setSync("Todoist 업데이트 중…");
   try{const d=await postJSON("/api/update_task",body);setSync((d&&d.ok)?"동기화됨 "+nowHM():"업데이트 실패 — 로컬 유지",!(d&&d.ok));}
   catch(e){setSync("업데이트 실패 — 로컬 유지",true);}
+}
+async function pushDelete(tid){
+  if(!tid)return;
+  setSync("Todoist에서 삭제 중…");
+  try{const d=await postJSON("/api/delete_task",{task_id:tid});setSync((d&&d.ok)?"동기화됨 "+nowHM():"삭제 실패 — 로컬만 삭제",!(d&&d.ok));}
+  catch(e){setSync("삭제 실패 — 로컬만 삭제",true);}
 }
 
 /* ---------- wiring ---------- */
