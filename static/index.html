@@ -210,6 +210,9 @@ dialog::backdrop{background:color-mix(in srgb,#0B0D12 45%,transparent)}
 .fx-list{display:flex;flex-direction:column;gap:4px;max-height:220px;overflow:auto}
 .fx-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;background:var(--bg);font-size:13px;cursor:pointer}
 .fx-item.editing{outline:1.5px solid var(--accent);outline-offset:-1px}
+.fx-skips{display:flex;flex-wrap:wrap;gap:4px;padding:0 2px 6px;font-size:11px;color:var(--muted);align-items:center}
+.fx-restore{border:1px solid var(--line-strong);background:var(--bg);border-radius:99px;padding:2px 8px;cursor:pointer;font-size:11px;color:var(--ink)}
+.toast-undo{background:none;border:none;color:#B9A8FF;font:inherit;font-weight:600;text-decoration:underline;cursor:pointer;padding:0;margin-left:8px}
 .fx-item .k{width:12px;height:12px;border-radius:3px;flex:none}
 .fx-item .k.solid{background:var(--fx-solid-bg);border:1px solid var(--fx-solid-bd)}
 .fx-item .k.open{border:1.5px dashed var(--fx-open-bd)}
@@ -353,7 +356,7 @@ function fixedOn(date){
   const st=S.settings;
   if(date<st.semStart||date>st.semEnd||HOL[date])return [];
   const d=dowOf(date);
-  return S.fixed.filter(f=>f.dows.includes(d));
+  return S.fixed.filter(f=>f.dows.includes(d)&&!(f.skip&&f.skip.includes(date)));
 }
 function checkSlot(item,date,start,dur){
   const st=S.settings, end=start+dur;
@@ -373,6 +376,7 @@ function fixedOverlap(cand,excludeId){
 }
 let toastT;
 function toast(msg){let t=document.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";t.setAttribute("role","status");document.body.appendChild(t)}t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
+function undoToast(msg,cb){let t=document.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";t.setAttribute("role","status");document.body.appendChild(t)}t.innerHTML="";const s=document.createElement("span");s.textContent=msg;const b=document.createElement("button");b.className="toast-undo";b.textContent="되돌리기";b.onclick=()=>{t.hidden=true;clearTimeout(toastT);cb()};t.appendChild(s);t.appendChild(b);t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,5000)}
 
 /* ---------- render ---------- */
 const $=id=>document.getElementById(id);
@@ -422,7 +426,7 @@ function render(){
     let inner="";
     fixedOn(d).forEach(f=>{
       const s=Math.max(f.start,H0*60),e=Math.min(f.end,H1*60); if(e<=s)return;
-      inner+=`<div class="fx ${f.kind}" style="top:${y(s)}px;height:${y(e)-y(s)}px"><div class="fn">${esc(f.name)}</div><div class="ft">${hm(f.start)}–${hm(f.end)}</div></div>`});
+      inner+=`<div class="fx ${f.kind}" data-fx="${f.id}" data-fxdate="${d}" title="클릭하면 이 날(${md(d)})만 숨겨요" style="top:${y(s)}px;height:${y(e)-y(s)}px"><div class="fn">${esc(f.name)}</div><div class="ft">${hm(f.start)}–${hm(f.end)}</div></div>`});
     S.items.filter(i=>i.date===d&&i.start!=null).forEach(i=>{
       const dur=i.dur||30,s=Math.max(i.start,H0*60),e=Math.min(i.start+dur,H1*60); if(e<=s)return;
       const hpx=y(e)-y(s)-2, short=hpx<40, dd=dday(i.deadline);
@@ -457,6 +461,8 @@ document.addEventListener("keydown",e=>{
 document.addEventListener("click",e=>{
   const c=e.target.closest("[data-done]");
   if(c){e.stopPropagation();const i=byId(c.dataset.done);if(i){i.done=c.checked;save();render();pushStatus(i)}return}
+  const fx=e.target.closest("[data-fx]");
+  if(fx&&!e.target.closest("dialog")){const f=S.fixed.find(x=>x.id===fx.dataset.fx);const dt=fx.dataset.fxdate;if(f){(f.skip=f.skip||[]).push(dt);save();render();undoToast(`'${f.name}' ${md(dt)}만 숨김`,()=>{f.skip=(f.skip||[]).filter(x=>x!==dt);save();render();});}return}
   const it=e.target.closest("[data-item]");
   if(it&&!e.target.closest("dialog"))openItem(it.dataset.item);
 });
@@ -602,7 +608,7 @@ function openFixed(){
   const editing=fixedEditId?S.fixed.find(x=>x.id===fixedEditId):null;
   const list=[...S.fixed].sort((a,b)=>Math.min(...a.dows)-Math.min(...b.dows)||a.start-b.start);
   f.innerHTML=`<h3>고정 스케줄</h3><p class="sub">${esc(S.settings.semName)} 개강일부터 종강일까지 매주 반복되고, 공휴일에는 표시되지 않아요. 항목을 누르면 수정할 수 있어요.</p>
-    <div class="fx-list">${list.map(x=>`<div class="fx-item${x.id===fixedEditId?" editing":""}" data-editfx="${x.id}"><span class="k ${x.kind}"></span><span>${esc(x.name)}</span><span class="t">${x.dows.map(d=>WD[d]).join("·")} ${hm(x.start)}–${hm(x.end)}</span><button type="button" class="x" data-delfx="${x.id}" aria-label="${esc(x.name)} 삭제">×</button></div>`).join("")||`<span class="empty">아직 없어요. 아래에서 수업이나 근무 시간을 추가하세요.</span>`}</div>
+    <div class="fx-list">${list.map(x=>`<div class="fx-item${x.id===fixedEditId?" editing":""}" data-editfx="${x.id}"><span class="k ${x.kind}"></span><span>${esc(x.name)}</span><span class="t">${x.dows.map(d=>WD[d]).join("·")} ${hm(x.start)}–${hm(x.end)}</span><button type="button" class="x" data-delfx="${x.id}" aria-label="${esc(x.name)} 삭제">×</button></div>${(x.skip&&x.skip.length)?`<div class="fx-skips">숨긴 날: ${[...x.skip].sort().map(dt=>`<button type="button" class="fx-restore" data-restorefx="${x.id}" data-date="${dt}">${md(dt)} ↩</button>`).join("")}</div>`:""}`).join("")||`<span class="empty">아직 없어요. 아래에서 수업이나 근무 시간을 추가하세요.</span>`}</div>
     <hr class="sep">
     <div class="field"><label for="fName">${editing?`수정 중: ${esc(editing.name)}`:"이름"}</label><input id="fName" placeholder="예: 경제원론 (대강당 101)" value="${editing?esc(editing.name):""}"></div>
     <div class="field"><span>요일</span><div class="dows">${WD.map((w,k)=>`<label><input type="checkbox" value="${k}" name="fDow"${editing&&editing.dows.includes(k)?" checked":""}>${w}</label>`).join("")}</div></div>
@@ -614,6 +620,7 @@ function openFixed(){
     <div class="acts">${editing?`<div class="left"><button class="btn" type="button" id="fCancelEdit">수정 취소</button></div>`:""}<button class="btn" value="cancel">닫기</button><button class="btn primary" type="button" id="fAdd">${editing?"저장":"추가"}</button></div>`;
   f.querySelectorAll("[data-editfx]").forEach(row=>row.onclick=ev=>{if(ev.target.closest("[data-delfx]"))return;fixedEditId=row.dataset.editfx;openFixedRefresh()});
   f.querySelectorAll("[data-delfx]").forEach(b=>b.onclick=ev=>{ev.stopPropagation();S.fixed=S.fixed.filter(x=>x.id!==b.dataset.delfx);if(fixedEditId===b.dataset.delfx)fixedEditId=null;save();render();openFixedRefresh()});
+  f.querySelectorAll("[data-restorefx]").forEach(b=>b.onclick=ev=>{ev.stopPropagation();const fo=S.fixed.find(x=>x.id===b.dataset.restorefx);if(fo&&fo.skip)fo.skip=fo.skip.filter(d=>d!==b.dataset.date);save();render();openFixedRefresh()});
   if(editing)$("fCancelEdit").onclick=()=>{fixedEditId=null;openFixedRefresh()};
   $("fAdd").onclick=()=>{
     const name=$("fName").value.trim(),dows=[...f.querySelectorAll("[name=fDow]:checked")].map(x=>+x.value),s=toMin($("fS").value||"0:0"),e=toMin($("fE").value||"0:0");
