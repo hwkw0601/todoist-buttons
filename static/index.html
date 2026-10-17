@@ -625,6 +625,45 @@ function openSettings(){
   $("dlgSet").showModal();
 }
 
+/* ---------- Todoist sync (import / reconcile) ---------- */
+async function postJSON(url,body){
+  const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})});
+  return r.json();
+}
+function setSync(txt,err){const el=$("syncStatus");if(!el)return;el.textContent=txt;el.style.color=err?"var(--danger)":"var(--muted)";el.style.borderColor=err?"var(--danger)":"var(--line-strong)";}
+function nowHM(){const n=new Date();return pad(n.getHours())+":"+pad(n.getMinutes());}
+function labelToCat(labels){for(const l of (labels||[])){const k=String(l).toLowerCase();if(CATS.some(c=>c.id===k))return k;}return "etc";}
+function itemFromTodoist(t,done){
+  const it={id:uid(),todoistId:t.id,name:t.name,cat:labelToCat(t.labels),dur:null,deadline:null,date:null,start:null,done:!!done,example:false};
+  if(t.due){
+    if(t.has_time){const p=String(t.due).split("T");it.date=p[0];it.start=toMin((p[1]||"00:00").slice(0,5));it.dur=60;}
+    else{it.date=String(t.due).slice(0,10);}
+  }
+  return it;
+}
+function applyReconcile(active,completed){
+  const localByTid={};
+  S.items.forEach(it=>{if(it.todoistId)localByTid[it.todoistId]=it;});
+  (active||[]).forEach(t=>{
+    const ex=localByTid[t.id];
+    if(ex){ex.name=t.name;ex.cat=labelToCat(t.labels);ex.done=false;}            // keep timetable position
+    else{const it=itemFromTodoist(t,false);S.items.push(it);localByTid[t.id]=it;}  // add by due
+  });
+  (completed||[]).forEach(t=>{const ex=localByTid[t.id];if(ex)ex.done=true;});
+}
+let syncing=false;
+async function syncFromTodoist(){
+  if(syncing)return; syncing=true; setSync("동기화 중…");
+  try{
+    const [a,c]=await Promise.all([postJSON("/api/list_active_tasks"),postJSON("/api/list_completed_tasks",{days:7})]);
+    if(!a.ok)throw new Error(a.error||"list failed");
+    applyReconcile(a.tasks||[], (c&&c.ok?c.tasks:[])||[]);
+    save(); render();
+    setSync("동기화됨 "+nowHM());
+  }catch(e){setSync("동기화 실패 — 로컬 유지",true);}
+  finally{syncing=false;}
+}
+
 /* ---------- wiring ---------- */
 $("prevW").onclick=()=>{weekStart=addDays(weekStart,-7);render()};
 $("nextW").onclick=()=>{weekStart=addDays(weekStart,7);render()};
@@ -637,6 +676,12 @@ $("clearEx").onclick=()=>{S.fixed=S.fixed.filter(x=>!x.example);S.items=S.items.
 document.addEventListener("keydown",e=>{if(e.target.closest&&e.target.closest("input,textarea,select,dialog"))return;if(e.key==="ArrowLeft")$("prevW").click();if(e.key==="ArrowRight")$("nextW").click()});
 setInterval(()=>{if(!document.querySelector("dialog[open]")&&!drag)render()},60000);
 render();
+/* Todoist: import on load + background poll (no button needed); click status to sync now */
+$("syncStatus").style.cursor="pointer";
+$("syncStatus").title="클릭하면 지금 동기화합니다";
+$("syncStatus").onclick=syncFromTodoist;
+syncFromTodoist();
+setInterval(()=>{if(!document.querySelector("dialog[open]")&&!drag)syncFromTodoist()},60000);
 })();
 </script>
 </body>

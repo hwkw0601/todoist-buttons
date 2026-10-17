@@ -11,6 +11,7 @@ Run:  uv run app.py   →  http://127.0.0.1:8000
 
 import asyncio
 import logging
+import re
 import sys
 from pathlib import Path
 
@@ -64,6 +65,47 @@ async def _call(name: str, args: dict) -> str:
     return _result_text(result)
 
 
+# Parse the MCP tools' plain-text lines into structured dicts for the UI.
+# Line shapes: "- [id] name | due: <val> (<str>) | labels: a, b"
+#              "- [id] name | completed: <ts> | labels: a, b"
+_LINE_RE = re.compile(r"^-\s*\[([^\]]+)\]\s*(.*)$")
+_NEW_ID_RE = re.compile(r"\[([^\]]+)\]")
+
+
+def _parse_tasks(text: str, done: bool) -> list[dict]:
+    tasks: list[dict] = []
+    for line in (text or "").splitlines():
+        m = _LINE_RE.match(line.strip())
+        if not m:
+            continue
+        tid, rest = m.group(1), m.group(2)
+        parts = [p.strip() for p in rest.split(" | ")]
+        name = parts[0]
+        due = None
+        has_time = False
+        completed_at = None
+        labels: list[str] = []
+        for p in parts[1:]:
+            if p.startswith("due:"):
+                raw = p[4:].strip().split(" (")[0].strip()
+                due = raw or None
+                has_time = "T" in (raw or "")
+            elif p.startswith("completed:"):
+                completed_at = p[len("completed:"):].strip() or None
+            elif p.startswith("labels:"):
+                labels = [x.strip() for x in p[len("labels:"):].split(",") if x.strip()]
+        tasks.append({
+            "id": tid, "name": name, "due": due, "has_time": has_time,
+            "labels": labels, "completed_at": completed_at, "done": done,
+        })
+    return tasks
+
+
+def _parse_new_id(text: str) -> str | None:
+    m = _NEW_ID_RE.search(text or "")
+    return m.group(1) if m else None
+
+
 async def index(request: Request):
     return FileResponse(STATIC / "index.html")
 
@@ -82,7 +124,7 @@ async def tools(request: Request):
 async def list_active_tasks(request: Request):
     try:
         text = await _call("list_active_tasks", {})
-        return JSONResponse({"ok": True, "text": text})
+        return JSONResponse({"ok": True, "tasks": _parse_tasks(text, done=False), "text": text})
     except Exception as exc:  # noqa: BLE001
         logger.exception("list_active_tasks failed")
         return JSONResponse({"ok": False, "error": f"Could not list tasks: {type(exc).__name__}"})
@@ -96,7 +138,7 @@ async def list_completed_tasks(request: Request):
     days = body.get("days", 7)
     try:
         text = await _call("list_completed_tasks", {"days": days})
-        return JSONResponse({"ok": True, "text": text})
+        return JSONResponse({"ok": True, "tasks": _parse_tasks(text, done=True), "text": text})
     except Exception as exc:  # noqa: BLE001
         logger.exception("list_completed_tasks failed")
         return JSONResponse(
@@ -122,7 +164,7 @@ async def create_task(request: Request):
         args["labels"] = labels if isinstance(labels, list) else [labels]
     try:
         text = await _call("create_task", args)
-        return JSONResponse({"ok": True, "text": text})
+        return JSONResponse({"ok": True, "id": _parse_new_id(text), "text": text})
     except Exception as exc:  # noqa: BLE001
         logger.exception("create_task failed")
         return JSONResponse({"ok": False, "error": f"Could not create task: {type(exc).__name__}"})
