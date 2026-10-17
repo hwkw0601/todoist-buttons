@@ -443,7 +443,7 @@ document.addEventListener("keydown",e=>{
 /* ---------- done toggle & click to edit ---------- */
 document.addEventListener("click",e=>{
   const c=e.target.closest("[data-done]");
-  if(c){e.stopPropagation();const i=byId(c.dataset.done);if(i){i.done=c.checked;save();render()}return}
+  if(c){e.stopPropagation();const i=byId(c.dataset.done);if(i){i.done=c.checked;save();render();pushStatus(i)}return}
   const it=e.target.closest("[data-item]");
   if(it&&!e.target.closest("dialog"))openItem(it.dataset.item);
 });
@@ -497,13 +497,14 @@ document.addEventListener("drop",e=>{
   if(zone==="dump"){item.date=null;item.start=null;if(z.dataset.cat)item.cat=z.dataset.cat}
   if(zone==="day"){item.date=z.dataset.date;item.start=null}
   save();render();
+  if(zone==="day")pushCreate(item);
 });
 function placeOnGrid(item,date,start){
   if(!item)return;
-  if(!item.dur){askDuration(item,dur=>{const bad=checkSlot(item,date,start,dur);if(bad){toast("놓을 수 없어요: "+bad);return}item.dur=dur;item.date=date;item.start=start;save();render()});return}
+  if(!item.dur){askDuration(item,dur=>{const bad=checkSlot(item,date,start,dur);if(bad){toast("놓을 수 없어요: "+bad);return}item.dur=dur;item.date=date;item.start=start;save();render();pushCreate(item)});return}
   const bad=checkSlot(item,date,start,item.dur);
   if(bad){toast("놓을 수 없어요: "+bad);return}
-  item.date=date;item.start=start;save();render();
+  item.date=date;item.start=start;save();render();pushCreate(item);
 }
 
 /* ---------- duration dialog ---------- */
@@ -567,8 +568,13 @@ function openItem(id){
       if(!dur){toast("시간표에 놓으려면 소요시간을 정해주세요");$("eDur").focus();return}
       const bad=checkSlot(i,date,start,dur); if(bad){toast("놓을 수 없어요: "+bad);return}
     }
+    const prevDone=i.done;
     Object.assign(i,{name,cat:$("eCat").value,dur,date,start,deadline:$("eDl").value||null,done:$("eDone").checked});
     dlg.close();save();render();
+    (async()=>{
+      if(i.date&&!i.todoistId&&!i.example)await pushCreate(i);
+      if(i.todoistId&&i.done!==prevDone)await pushStatus(i);
+    })();
   };
   if(placed)$("eBack").onclick=()=>{i.start=null;dlg.close();save();render();toast(`${md(i.date)} 날짜 칸으로 옮겼어요`)};
   let armed=false;
@@ -662,6 +668,29 @@ async function syncFromTodoist(){
     setSync("동기화됨 "+nowHM());
   }catch(e){setSync("동기화 실패 — 로컬 유지",true);}
   finally{syncing=false;}
+}
+
+/* ---------- Todoist sync (push: create / status) ---------- */
+function canonLabel(cat){return (cat&&cat!=="etc")?[CATNAME[cat]]:[]}
+async function pushCreate(item){
+  if(!item||item.example||item.todoistId||!item.date)return;
+  const body={content:item.name,labels:canonLabel(item.cat)};
+  if(item.start!=null)body.due_datetime=item.date+"T"+hm(item.start)+":00";
+  else body.due_date=item.date;
+  setSync("Todoist에 추가 중…");
+  try{
+    const d=await postJSON("/api/create_task",body);
+    if(d.ok&&d.id){item.todoistId=d.id;save();setSync("동기화됨 "+nowHM());}
+    else{setSync("추가 실패 — 로컬 유지",true);}
+  }catch(e){setSync("추가 실패 — 로컬 유지",true);}
+}
+async function pushStatus(item){
+  if(!item||!item.todoistId)return;
+  setSync(item.done?"완료 반영 중…":"되돌리는 중…");
+  try{
+    const d=await postJSON("/api/set_task_status",{task_id:item.todoistId,done:!!item.done});
+    setSync(d.ok?"동기화됨 "+nowHM():"반영 실패 — 로컬 유지",!(d&&d.ok));
+  }catch(e){setSync("반영 실패 — 로컬 유지",true);}
 }
 
 /* ---------- wiring ---------- */
