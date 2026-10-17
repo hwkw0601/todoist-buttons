@@ -173,10 +173,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 
 /* day ideas */
 .days{overflow-x:auto}
-.days-grid{min-width:820px;display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));gap:0}
+.days-grid{min-width:820px;display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));gap:0;border-top:2px solid var(--line)}
 .day-cell{border:1px solid var(--line);border-right:none;background:var(--surface);padding:8px 6px;display:flex;flex-direction:column;gap:5px;min-height:110px;min-width:0}
-.day-cell:last-child{border-right:1px solid var(--line);border-radius:0 8px 8px 0}
-.day-cell:nth-child(2){border-radius:8px 0 0 8px}
+.day-cell:last-child{border-right:1px solid var(--line)}
 .day-cell .lbl{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
 .days-lead{font-size:11px;color:var(--muted);padding:8px 6px 0 0;text-align:right}
 .empty{font-size:12px;color:var(--muted);opacity:.8}
@@ -254,13 +253,11 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:2px 0}
   </section>
 
   <section>
-    <div class="sec-h"><h2>Timetable</h2><p>회색 면 = 배치 불가 · 점선 = 안에 task 배치 가능</p></div>
-    <div class="tt-scroll"><div class="tt" id="tt"></div></div>
-  </section>
-
-  <section>
-    <div class="sec-h"><h2>날짜별 Idea</h2><p>날짜는 정했지만 시간은 아직 · 시간표로 끌어올리면 task가 됩니다</p></div>
-    <div class="days"><div class="days-grid" id="days"></div></div>
+    <div class="sec-h"><h2>Timetable</h2><p>회색 면 = 배치 불가 · 점선 = 안에 task 배치 가능 · 아래 = 날짜별 Idea (날짜만 정한 할 일)</p></div>
+    <div class="tt-scroll">
+      <div class="tt" id="tt"></div>
+      <div class="days-grid" id="days"></div>
+    </div>
   </section>
 </div>
 
