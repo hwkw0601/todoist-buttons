@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>할 일 버튼</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+/* Design tokens reused from the 주간 플래너 (weekly planner) app */
+:root{
+  --bg:#F5F6F8; --surface:#FFFFFF; --ink:#1B1F27; --muted:#687080; --line:#E2E5EA; --line-strong:#CBD0D8;
+  --accent:#1E3E8C; --accent-ink:#FFFFFF; --accent-soft:#E6ECF8; --danger:#C8372D; --ok:#1F7A4D;
+  --ac-bg:#C9CED6; --ac-bd:#7F8794;
+  --ex-bg:#D3E3FB; --ex-bd:#3B7BE0;
+  --ap-bg:#FBEAAE; --ap-bd:#D4A30C;
+  --ra-bg:#F8D2CE; --ra-bd:#D6443A;
+  --et-bg:#E4D8F7; --et-bd:#8B5CD6;
+  --blk-ink:#20252E;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --radius:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121418; --surface:#1A1D22; --ink:#E7E9ED; --muted:#959CA8; --line:#2A2F37; --line-strong:#3A404A;
+  --accent:#86A7F3; --accent-ink:#0F1A33; --accent-soft:#1F2A44; --danger:#F07368; --ok:#5FBE8C;
+  --ac-bg:#4A505A; --ac-bd:#A0A7B2;
+  --ex-bg:#1E3962; --ex-bd:#5F98F1;
+  --ap-bg:#4B3E10; --ap-bd:#E1B52C;
+  --ra-bg:#4D2220; --ra-bd:#EE6B61;
+  --et-bg:#352659; --et-bd:#A680EB;
+  --blk-ink:#EEF0F3; color-scheme:dark;
+}}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px;max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+
+.bar{position:sticky;top:0;z-index:30;background:var(--bg);display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding-block:14px 12px;border-bottom:1px solid var(--line)}
+.brand{font-weight:600;font-size:15px;letter-spacing:-.01em}
+.spacer{flex:1}
+.pill{font-size:12px;color:var(--muted);border:1px dashed var(--line-strong);border-radius:99px;padding:3px 10px;white-space:nowrap}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.sec-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sec-h h2{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0}
+
+.btn{border:1px solid var(--line-strong);background:var(--surface);border-radius:var(--radius);padding:7px 13px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn:disabled{opacity:.55;cursor:default;filter:none}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px}
+
+.field{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.field input,.field select{background:var(--bg);border:1px solid var(--line-strong);border-radius:5px;padding:7px 9px;color:var(--ink);font-size:14px;min-width:0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* task chips (planner's .idea look) */
+.tasks{display:flex;flex-direction:column;gap:6px}
+.idea{display:flex;flex-direction:column;gap:1px;background:var(--c-bg,var(--surface));border-left:3px solid var(--c-bd,var(--line-strong));border-radius:5px;padding:6px 9px;color:var(--blk-ink);min-width:0}
+.idea .nm{font-size:13px;font-weight:500;overflow-wrap:anywhere}
+.idea .mt{font-family:var(--f-mono);font-size:11px;opacity:.8;display:flex;gap:10px;flex-wrap:wrap}
+.cat-academics{--c-bg:var(--ac-bg);--c-bd:var(--ac-bd)}
+.cat-extracurricular{--c-bg:var(--ex-bg);--c-bd:var(--ex-bd)}
+.cat-application{--c-bg:var(--ap-bg);--c-bd:var(--ap-bd)}
+.cat-ra{--c-bg:var(--ra-bg);--c-bd:var(--ra-bd)}
+.cat-etc{--c-bg:var(--et-bg);--c-bd:var(--et-bd)}
+
+.result{font-family:var(--f-mono);font-size:12px;white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 11px;color:var(--muted);min-height:20px}
+.result.err{color:var(--danger);border-color:var(--danger)}
+.result.ok{color:var(--ok)}
+.empty{color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <span class="brand">할 일 버튼</span>
+    <span class="spacer"></span>
+    <span class="pill">Todoist · MCP</span>
+  </header>
+
+  <!-- 1. list -->
+  <section class="card">
+    <div class="sec-h"><h2>내 할 일</h2></div>
+    <div class="btnrow"><button class="btn primary" id="btnList">내 할 일 불러오기</button></div>
+    <div class="tasks" id="taskList"><span class="empty">아직 불러오지 않았어요.</span></div>
+    <div class="result" id="resList" hidden></div>
+  </section>
+
+  <!-- 2. create -->
+  <section class="card">
+    <div class="sec-h"><h2>할 일 추가</h2></div>
+    <div class="field"><label for="cName">이름</label><input id="cName" placeholder="할 일 이름" autocomplete="off"></div>
+    <div class="row2">
+      <div class="field"><label for="cDate">날짜 (선택)</label><input id="cDate" type="date"></div>
+      <div class="field"><label for="cTime">시간 (선택)</label><input id="cTime" type="time" step="300"></div>
+    </div>
+    <div class="field"><label for="cLabel">라벨 (선택)</label>
+      <select id="cLabel">
+        <option value="">(없음)</option>
+        <option value="Academics">Academics</option>
+        <option value="Extracurricular">Extracurricular</option>
+        <option value="Application">Application</option>
+        <option value="RA">RA</option>
+        <option value="etc">etc</option>
+      </select>
+    </div>
+    <div class="btnrow"><button class="btn primary" id="btnAdd">할 일 추가</button></div>
+    <div class="result" id="resAdd" hidden></div>
+  </section>
+
+  <!-- 3. status -->
+  <section class="card">
+    <div class="sec-h"><h2>완료 / 되돌리기</h2></div>
+    <div class="field"><label for="sActive">완료할 일 (열린 할 일 중에서 · 먼저 "내 할 일 불러오기")</label>
+      <select id="sActive"><option value="">— 목록을 먼저 불러오세요 —</option></select>
+    </div>
+    <div class="btnrow"><button class="btn primary" id="btnDone">완료</button></div>
+    <div class="btnrow"><button class="btn" id="btnLoadDone">완료한 일 불러오기</button></div>
+    <div class="field"><label for="sDone">되돌릴 일 (최근 7일 완료 · 폰에서 완료한 것도 포함)</label>
+      <select id="sDone"><option value="">— 불러오지 않았어요 —</option></select>
+    </div>
+    <div class="btnrow"><button class="btn" id="btnReopen">되돌리기</button></div>
+    <div class="result" id="resStatus" hidden></div>
+  </section>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const CATS=["academics","extracurricular","application","ra","etc"];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+// Completed tasks come from the server (list_completed_tasks), so the 되돌리기
+// dropdown includes tasks finished anywhere — including on the phone.
+async function doLoadCompleted(){
+  const b=$("#btnLoadDone");b.disabled=true;
+  try{
+    const d=await postJSON("/api/list_completed_tasks",{days:7});
+    if(!d.ok){show($("#resStatus"),d.error||"오류","err");return;}
+    const tasks=parseTasks(d.text),sel=$("#sDone");
+    sel.innerHTML=tasks.length
+      ? tasks.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}</option>`).join("")
+      : '<option value="">— 최근 완료한 할 일 없음 —</option>';
+  }catch(e){show($("#resStatus"),"서버에 연결하지 못했어요.","err");}
+  finally{b.disabled=false;}
+}
+
+function show(el,msg,kind){el.hidden=false;el.textContent=msg;el.className="result"+(kind?" "+kind:"");}
+
+async function postJSON(url,body){
+  const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})});
+  return r.json();
+}
+
+// Parse the list tool's plain text: lines like "- [id] name | due: ... | labels: a, b"
+function parseTasks(text){
+  const out=[];
+  for(const line of String(text).split("\n")){
+    const m=line.match(/^-\s*\[([^\]]+)\]\s*(.*)$/);
+    if(!m)continue;
+    const id=m[1];
+    const parts=m[2].split(" | ");
+    const name=parts[0].trim();
+    let due="",labels=[];
+    for(const p of parts.slice(1)){
+      if(p.startsWith("due:"))due=p.slice(4).trim();
+      else if(p.startsWith("labels:"))labels=p.slice(7).split(",").map(s=>s.trim()).filter(Boolean);
+    }
+    out.push({id,name,due,labels});
+  }
+  return out;
+}
+function catOf(labels){
+  for(const l of labels){const k=l.toLowerCase();if(CATS.includes(k))return k;}
+  return "";
+}
+function renderTasks(tasks){
+  const el=$("#taskList"),sel=$("#sActive");
+  if(!tasks.length){el.innerHTML='<span class="empty">열린 할 일이 없어요.</span>';sel.innerHTML='<option value="">— 열린 할 일 없음 —</option>';return;}
+  el.innerHTML=tasks.map(t=>{
+    const cat=catOf(t.labels),meta=[];
+    if(t.due)meta.push(esc(t.due));
+    if(t.labels.length)meta.push(esc(t.labels.join(", ")));
+    return `<div class="idea${cat?" cat-"+cat:""}"><span class="nm">${esc(t.name)}</span>${meta.length?`<span class="mt">${meta.map(x=>`<span>${x}</span>`).join("")}</span>`:""}</div>`;
+  }).join("");
+  sel.innerHTML=tasks.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}${t.due?" ("+esc(t.due)+")":""}</option>`).join("");
+}
+
+async function doList(){
+  const b=$("#btnList");b.disabled=true;show($("#resList"),"불러오는 중…");
+  try{
+    const d=await postJSON("/api/list_active_tasks");
+    if(!d.ok){show($("#resList"),d.error||"오류","err");return;}
+    renderTasks(parseTasks(d.text));
+    show($("#resList"),d.text,"ok");
+  }catch(e){show($("#resList"),"서버에 연결하지 못했어요.","err");}
+  finally{b.disabled=false;}
+}
+
+async function doAdd(){
+  const name=$("#cName").value.trim();
+  if(!name){show($("#resAdd"),"이름을 입력하세요.","err");$("#cName").focus();return;}
+  const date=$("#cDate").value,time=$("#cTime").value;
+  const body={content:name};
+  if(time){
+    if(!date){show($("#resAdd"),"시간을 정하려면 날짜도 필요해요.","err");$("#cDate").focus();return;}
+    body.due_datetime=`${date}T${time}:00`;
+  }else if(date){
+    body.due_date=date;
+  }
+  const label=$("#cLabel").value;
+  if(label)body.labels=[label];
+  const b=$("#btnAdd");b.disabled=true;show($("#resAdd"),"추가하는 중…");
+  try{
+    const d=await postJSON("/api/create_task",body);
+    if(!d.ok){show($("#resAdd"),d.error||"오류","err");return;}
+    show($("#resAdd"),d.text,"ok");
+    $("#cName").value="";$("#cDate").value="";$("#cTime").value="";$("#cLabel").value="";
+    doList();
+  }catch(e){show($("#resAdd"),"서버에 연결하지 못했어요.","err");}
+  finally{b.disabled=false;}
+}
+
+async function doComplete(){
+  const id=$("#sActive").value;
+  if(!id){show($("#resStatus"),"완료할 할 일을 선택하세요.","err");return;}
+  const b=$("#btnDone");b.disabled=true;show($("#resStatus"),"완료 처리 중…");
+  try{
+    const d=await postJSON("/api/set_task_status",{task_id:id,done:true});
+    if(!d.ok){show($("#resStatus"),d.error||"오류","err");return;}
+    show($("#resStatus"),d.text,"ok");
+    doList();doLoadCompleted();
+  }catch(e){show($("#resStatus"),"서버에 연결하지 못했어요.","err");}
+  finally{b.disabled=false;}
+}
+
+async function doReopen(){
+  const id=$("#sDone").value;
+  if(!id){show($("#resStatus"),'되돌릴 할 일을 선택하세요. (먼저 "완료한 일 불러오기")',"err");return;}
+  const b=$("#btnReopen");b.disabled=true;show($("#resStatus"),"되돌리는 중…");
+  try{
+    const d=await postJSON("/api/set_task_status",{task_id:id,done:false});
+    if(!d.ok){show($("#resStatus"),d.error||"오류","err");return;}
+    show($("#resStatus"),d.text,"ok");
+    doList();doLoadCompleted();
+  }catch(e){show($("#resStatus"),"서버에 연결하지 못했어요.","err");}
+  finally{b.disabled=false;}
+}
+
+$("#btnList").onclick=doList;
+$("#btnAdd").onclick=doAdd;
+$("#btnDone").onclick=doComplete;
+$("#btnLoadDone").onclick=doLoadCompleted;
+$("#btnReopen").onclick=doReopen;
+$("#cName").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.isComposing){e.preventDefault();doAdd();}});
+</script>
+</body>
+</html>
