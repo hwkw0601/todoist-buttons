@@ -204,7 +204,8 @@ dialog::backdrop{background:color-mix(in srgb,#0B0D12 45%,transparent)}
 .kinds .demo.open{background:var(--fx-open-bg);border:1.5px dashed var(--fx-open-bd)}
 .kinds small{display:block;color:var(--muted);font-size:11.5px}
 .fx-list{display:flex;flex-direction:column;gap:4px;max-height:220px;overflow:auto}
-.fx-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;background:var(--bg);font-size:13px}
+.fx-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;background:var(--bg);font-size:13px;cursor:pointer}
+.fx-item.editing{outline:1.5px solid var(--accent);outline-offset:-1px}
 .fx-item .k{width:12px;height:12px;border-radius:3px;flex:none}
 .fx-item .k.solid{background:var(--fx-solid-bg);border:1px solid var(--fx-solid-bd)}
 .fx-item .k.open{border:1.5px dashed var(--fx-open-bd)}
@@ -358,6 +359,14 @@ function checkSlot(item,date,start,dur){
   return null;
 }
 function insideOpen(item){return fixedOn(item.date).some(f=>f.kind==="open"&&item.start>=f.start&&item.start+(item.dur||30)<=f.end)}
+function fixedOverlap(cand,excludeId){
+  for(const f of S.fixed){
+    if(excludeId&&f.id===excludeId)continue;
+    if(!f.dows.some(d=>cand.dows.includes(d)))continue;
+    if(cand.start<f.end&&cand.end>f.start)return f;
+  }
+  return null;
+}
 let toastT;
 function toast(msg){let t=document.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";t.setAttribute("role","status");document.body.appendChild(t)}t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
 
@@ -583,28 +592,35 @@ function openItem(id){
 }
 
 /* ---------- fixed schedule ---------- */
+let fixedEditId=null;
 function openFixed(){
   const f=$("formFixed");
+  const editing=fixedEditId?S.fixed.find(x=>x.id===fixedEditId):null;
   const list=[...S.fixed].sort((a,b)=>Math.min(...a.dows)-Math.min(...b.dows)||a.start-b.start);
-  f.innerHTML=`<h3>고정 스케줄</h3><p class="sub">${esc(S.settings.semName)} 개강일부터 종강일까지 매주 반복되고, 공휴일에는 표시되지 않아요.</p>
-    <div class="fx-list">${list.map(x=>`<div class="fx-item"><span class="k ${x.kind}"></span><span>${esc(x.name)}</span><span class="t">${x.dows.map(d=>WD[d]).join("·")} ${hm(x.start)}–${hm(x.end)}</span><button type="button" class="x" data-delfx="${x.id}" aria-label="${esc(x.name)} 삭제">×</button></div>`).join("")||`<span class="empty">아직 없어요. 아래에서 수업이나 근무 시간을 추가하세요.</span>`}</div>
+  f.innerHTML=`<h3>고정 스케줄</h3><p class="sub">${esc(S.settings.semName)} 개강일부터 종강일까지 매주 반복되고, 공휴일에는 표시되지 않아요. 항목을 누르면 수정할 수 있어요.</p>
+    <div class="fx-list">${list.map(x=>`<div class="fx-item${x.id===fixedEditId?" editing":""}" data-editfx="${x.id}"><span class="k ${x.kind}"></span><span>${esc(x.name)}</span><span class="t">${x.dows.map(d=>WD[d]).join("·")} ${hm(x.start)}–${hm(x.end)}</span><button type="button" class="x" data-delfx="${x.id}" aria-label="${esc(x.name)} 삭제">×</button></div>`).join("")||`<span class="empty">아직 없어요. 아래에서 수업이나 근무 시간을 추가하세요.</span>`}</div>
     <hr class="sep">
-    <div class="field"><label for="fName">이름</label><input id="fName" placeholder="예: 경제원론 (대강당 101)"></div>
-    <div class="field"><span>요일</span><div class="dows">${WD.map((w,k)=>`<label><input type="checkbox" value="${k}" name="fDow">${w}</label>`).join("")}</div></div>
-    <div class="row2"><div class="field"><label for="fS">시작</label><input id="fS" type="time" step="300" value="09:00"></div><div class="field"><label for="fE">종료</label><input id="fE" type="time" step="300" value="10:15"></div></div>
+    <div class="field"><label for="fName">${editing?`수정 중: ${esc(editing.name)}`:"이름"}</label><input id="fName" placeholder="예: 경제원론 (대강당 101)" value="${editing?esc(editing.name):""}"></div>
+    <div class="field"><span>요일</span><div class="dows">${WD.map((w,k)=>`<label><input type="checkbox" value="${k}" name="fDow"${editing&&editing.dows.includes(k)?" checked":""}>${w}</label>`).join("")}</div></div>
+    <div class="row2"><div class="field"><label for="fS">시작</label><input id="fS" type="time" step="300" value="${editing?hm(editing.start):"09:00"}"></div><div class="field"><label for="fE">종료</label><input id="fE" type="time" step="300" value="${editing?hm(editing.end):"10:15"}"></div></div>
     <div class="kinds">
-      <label><input type="radio" name="fKind" value="solid" checked hidden><span class="demo solid"></span><span>배치 불가<small>수업처럼 task를 넣을 수 없는 시간</small></span></label>
-      <label><input type="radio" name="fKind" value="open" hidden><span class="demo open"></span><span>배치 가능<small>공강·근무처럼 안에 task를 넣는 시간</small></span></label>
+      <label><input type="radio" name="fKind" value="solid"${!editing||editing.kind==="solid"?" checked":""} hidden><span class="demo solid"></span><span>배치 불가<small>수업처럼 task를 넣을 수 없는 시간</small></span></label>
+      <label><input type="radio" name="fKind" value="open"${editing&&editing.kind==="open"?" checked":""} hidden><span class="demo open"></span><span>배치 가능<small>공강·근무처럼 안에 task를 넣는 시간</small></span></label>
     </div>
-    <div class="acts"><button class="btn" value="cancel">닫기</button><button class="btn primary" type="button" id="fAdd">추가</button></div>`;
-  f.querySelectorAll("[data-delfx]").forEach(b=>b.onclick=()=>{S.fixed=S.fixed.filter(x=>x.id!==b.dataset.delfx);save();render();openFixedRefresh()});
+    <div class="acts">${editing?`<div class="left"><button class="btn" type="button" id="fCancelEdit">수정 취소</button></div>`:""}<button class="btn" value="cancel">닫기</button><button class="btn primary" type="button" id="fAdd">${editing?"저장":"추가"}</button></div>`;
+  f.querySelectorAll("[data-editfx]").forEach(row=>row.onclick=ev=>{if(ev.target.closest("[data-delfx]"))return;fixedEditId=row.dataset.editfx;openFixedRefresh()});
+  f.querySelectorAll("[data-delfx]").forEach(b=>b.onclick=ev=>{ev.stopPropagation();S.fixed=S.fixed.filter(x=>x.id!==b.dataset.delfx);if(fixedEditId===b.dataset.delfx)fixedEditId=null;save();render();openFixedRefresh()});
+  if(editing)$("fCancelEdit").onclick=()=>{fixedEditId=null;openFixedRefresh()};
   $("fAdd").onclick=()=>{
     const name=$("fName").value.trim(),dows=[...f.querySelectorAll("[name=fDow]:checked")].map(x=>+x.value),s=toMin($("fS").value||"0:0"),e=toMin($("fE").value||"0:0");
     if(!name){$("fName").focus();toast("이름을 적어주세요");return}
     if(!dows.length){toast("요일을 하나 이상 골라주세요");return}
     if(e<=s){toast("종료 시간이 시작보다 늦어야 해요");return}
-    S.fixed.push({id:uid(),name,dows,start:s,end:e,kind:f.querySelector("[name=fKind]:checked").value});
-    save();render();openFixedRefresh();toast("추가했어요");
+    const conflict=fixedOverlap({dows,start:s,end:e},fixedEditId);
+    if(conflict){toast(`'${conflict.name}'과(와) 시간이 겹쳐요`);return}
+    if(fixedEditId){const it=S.fixed.find(x=>x.id===fixedEditId);if(it){Object.assign(it,{name,dows,start:s,end:e,kind:f.querySelector("[name=fKind]:checked").value});delete it.example}fixedEditId=null;}
+    else{S.fixed.push({id:uid(),name,dows,start:s,end:e,kind:f.querySelector("[name=fKind]:checked").value});}
+    save();render();openFixedRefresh();toast("저장했어요");
   };
 }
 function openFixedRefresh(){openFixed()}
@@ -697,7 +713,7 @@ async function pushStatus(item){
 $("prevW").onclick=()=>{weekStart=addDays(weekStart,-7);render()};
 $("nextW").onclick=()=>{weekStart=addDays(weekStart,7);render()};
 $("todayW").onclick=()=>{weekStart=mondayOf(todayStr());render()};
-$("openFixed").onclick=()=>{openFixed();$("dlgFixed").showModal()};
+$("openFixed").onclick=()=>{fixedEditId=null;openFixed();$("dlgFixed").showModal()};
 $("openSettings").onclick=openSettings;
 $("fab").onclick=openAdd;
 $("viewToggle").addEventListener("click",e=>{const b=e.target.closest("[data-view]");if(!b)return;S.settings.dumpView=b.dataset.view;save();render()});
