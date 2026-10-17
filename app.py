@@ -170,6 +170,28 @@ async def create_task(request: Request):
         return JSONResponse({"ok": False, "error": f"Could not create task: {type(exc).__name__}"})
 
 
+async def update_task(request: Request):
+    try:
+        body = await request.json()
+    except Exception:  # noqa: BLE001
+        return JSONResponse({"ok": False, "error": "Invalid request body."})
+    task_id = (body.get("task_id") or "").strip()
+    if not task_id:
+        return JSONResponse({"ok": False, "error": "Missing task id."})
+    args: dict = {"task_id": task_id}
+    for k in ("content", "due_date", "due_datetime", "labels"):
+        if body.get(k) is not None:
+            args[k] = body[k]
+    if body.get("clear_due"):
+        args["clear_due"] = True
+    try:
+        text = await _call("update_task", args)
+        return JSONResponse({"ok": True, "text": text})
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("update_task failed")
+        return JSONResponse({"ok": False, "error": f"Could not update task: {type(exc).__name__}"})
+
+
 async def set_task_status(request: Request):
     try:
         body = await request.json()
@@ -194,6 +216,7 @@ app = Starlette(
         Route("/api/list_active_tasks", list_active_tasks, methods=["POST"]),
         Route("/api/list_completed_tasks", list_completed_tasks, methods=["POST"]),
         Route("/api/create_task", create_task, methods=["POST"]),
+        Route("/api/update_task", update_task, methods=["POST"]),
         Route("/api/set_task_status", set_task_status, methods=["POST"]),
     ]
 )

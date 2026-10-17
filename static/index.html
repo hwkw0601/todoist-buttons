@@ -506,14 +506,14 @@ document.addEventListener("drop",e=>{
   if(zone==="dump"){item.date=null;item.start=null;if(z.dataset.cat)item.cat=z.dataset.cat}
   if(zone==="day"){item.date=z.dataset.date;item.start=null}
   save();render();
-  if(zone==="day")pushCreate(item);
+  if(zone==="dump"||zone==="day")pushSync(item);
 });
 function placeOnGrid(item,date,start){
   if(!item)return;
-  if(!item.dur){askDuration(item,dur=>{const bad=checkSlot(item,date,start,dur);if(bad){toast("놓을 수 없어요: "+bad);return}item.dur=dur;item.date=date;item.start=start;save();render();pushCreate(item)});return}
+  if(!item.dur){askDuration(item,dur=>{const bad=checkSlot(item,date,start,dur);if(bad){toast("놓을 수 없어요: "+bad);return}item.dur=dur;item.date=date;item.start=start;save();render();pushSync(item)});return}
   const bad=checkSlot(item,date,start,item.dur);
   if(bad){toast("놓을 수 없어요: "+bad);return}
-  item.date=date;item.start=start;save();render();pushCreate(item);
+  item.date=date;item.start=start;save();render();pushSync(item);
 }
 
 /* ---------- duration dialog ---------- */
@@ -581,11 +581,11 @@ function openItem(id){
     Object.assign(i,{name,cat:$("eCat").value,dur,date,start,deadline:$("eDl").value||null,done:$("eDone").checked});
     dlg.close();save();render();
     (async()=>{
-      if(i.date&&!i.todoistId&&!i.example)await pushCreate(i);
+      await pushSync(i);
       if(i.todoistId&&i.done!==prevDone)await pushStatus(i);
     })();
   };
-  if(placed)$("eBack").onclick=()=>{i.start=null;dlg.close();save();render();toast(`${md(i.date)} 날짜 칸으로 옮겼어요`)};
+  if(placed)$("eBack").onclick=()=>{i.start=null;dlg.close();save();render();pushSync(i);toast(`${md(i.date)} 날짜 칸으로 옮겼어요`)};
   let armed=false;
   $("eDel").onclick=e=>{if(!armed){armed=true;e.target.textContent="한 번 더 누르면 삭제";return}S.items=S.items.filter(x=>x!==i);dlg.close();save();render()};
   dlg.showModal();
@@ -707,6 +707,16 @@ async function pushStatus(item){
     const d=await postJSON("/api/set_task_status",{task_id:item.todoistId,done:!!item.done});
     setSync(d.ok?"동기화됨 "+nowHM():"반영 실패 — 로컬 유지",!(d&&d.ok));
   }catch(e){setSync("반영 실패 — 로컬 유지",true);}
+}
+async function pushSync(item){
+  if(!item||item.example)return;
+  if(!item.todoistId){await pushCreate(item);return;}         // not in Todoist yet -> create
+  const body={task_id:item.todoistId,content:item.name};
+  if(item.date){if(item.start!=null)body.due_datetime=item.date+"T"+hm(item.start)+":00";else body.due_date=item.date;}
+  else{body.clear_due=true;}                                   // reverted to idea -> clear due
+  setSync("Todoist 업데이트 중…");
+  try{const d=await postJSON("/api/update_task",body);setSync((d&&d.ok)?"동기화됨 "+nowHM():"업데이트 실패 — 로컬 유지",!(d&&d.ok));}
+  catch(e){setSync("업데이트 실패 — 로컬 유지",true);}
 }
 
 /* ---------- wiring ---------- */
