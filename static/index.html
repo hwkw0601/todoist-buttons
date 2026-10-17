@@ -2,260 +2,642 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>할 일 버튼</title>
+<title>주간 플래너</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
 <style>
-/* Design tokens reused from the 주간 플래너 (weekly planner) app */
+/* Layout: sticky week bar → idea dump by category → 7-day timetable → per-day ideas below the fold */
 :root{
   --bg:#F5F6F8; --surface:#FFFFFF; --ink:#1B1F27; --muted:#687080; --line:#E2E5EA; --line-strong:#CBD0D8;
-  --accent:#1E3E8C; --accent-ink:#FFFFFF; --accent-soft:#E6ECF8; --danger:#C8372D; --ok:#1F7A4D;
-  --ac-bg:#C9CED6; --ac-bd:#7F8794;
-  --ex-bg:#D3E3FB; --ex-bd:#3B7BE0;
-  --ap-bg:#FBEAAE; --ap-bd:#D4A30C;
-  --ra-bg:#F8D2CE; --ra-bd:#D6443A;
-  --et-bg:#E4D8F7; --et-bd:#8B5CD6;
-  --blk-ink:#20252E;
+  --accent:#1E3E8C; --accent-ink:#FFFFFF; --accent-soft:#E6ECF8; --danger:#C8372D; --now:#D9443A;
+  --fx-solid-bg:#E8EAEE; --fx-solid-bd:#D2D6DD; --fx-solid-ink:#5C6370;
+  --fx-open-bg:#F7F8FA; --fx-open-bd:#A9B0BB; --fx-open-ink:#6C7380;
+  --ac-bg:#C9CED6; --ac-bd:#7F8794; --ac-done-bg:#BDBFC2; --ac-done-bd:#94979B;
+  --ex-bg:#D3E3FB; --ex-bd:#3B7BE0; --ex-done-bg:#C1C7CF; --ex-done-bd:#8892A1;
+  --ap-bg:#FBEAAE; --ap-bd:#D4A30C; --ap-done-bg:#CFCAB6; --ap-done-bd:#A39D7E;
+  --ra-bg:#F8D2CE; --ra-bd:#D6443A; --ra-done-bg:#CDC0BE; --ra-done-bd:#A18886;
+  --et-bg:#E4D8F7; --et-bd:#8B5CD6; --et-done-bg:#C8C2D0; --et-done-bd:#938AA4;
+  --blk-ink:#20252E; --blk-done-ink:#6A6E74;
   --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
-  --radius:6px;
+  --rowh:22px; --radius:6px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#121418; --surface:#1A1D22; --ink:#E7E9ED; --muted:#959CA8; --line:#2A2F37; --line-strong:#3A404A;
-  --accent:#86A7F3; --accent-ink:#0F1A33; --accent-soft:#1F2A44; --danger:#F07368; --ok:#5FBE8C;
-  --ac-bg:#4A505A; --ac-bd:#A0A7B2;
-  --ex-bg:#1E3962; --ex-bd:#5F98F1;
-  --ap-bg:#4B3E10; --ap-bd:#E1B52C;
-  --ra-bg:#4D2220; --ra-bd:#EE6B61;
-  --et-bg:#352659; --et-bd:#A680EB;
-  --blk-ink:#EEF0F3; color-scheme:dark;
+  --accent:#86A7F3; --accent-ink:#0F1A33; --accent-soft:#1F2A44; --danger:#F07368; --now:#F07368;
+  --fx-solid-bg:#272B32; --fx-solid-bd:#353A43; --fx-solid-ink:#9AA1AC;
+  --fx-open-bg:#1C1F24; --fx-open-bd:#5B626D; --fx-open-ink:#9AA1AC;
+  --ac-bg:#4A505A; --ac-bd:#A0A7B2; --ac-done-bg:#32353A; --ac-done-bd:#5D6065;
+  --ex-bg:#1E3962; --ex-bd:#5F98F1; --ex-done-bg:#2A2F37; --ex-done-bd:#505966;
+  --ap-bg:#4B3E10; --ap-bd:#E1B52C; --ap-done-bg:#35322A; --ap-done-bd:#686250;
+  --ra-bg:#4D2220; --ra-bd:#EE6B61; --ra-done-bg:#372D2C; --ra-done-bd:#695553;
+  --et-bg:#352659; --et-bd:#A680EB; --et-done-bg:#312D37; --et-done-bd:#5F586B;
+  --blk-ink:#EEF0F3; --blk-done-ink:#8C9199; color-scheme:dark;
 }}
+:root[data-theme="dark"]{
+  --bg:#121418; --surface:#1A1D22; --ink:#E7E9ED; --muted:#959CA8; --line:#2A2F37; --line-strong:#3A404A;
+  --accent:#86A7F3; --accent-ink:#0F1A33; --accent-soft:#1F2A44; --danger:#F07368; --now:#F07368;
+  --fx-solid-bg:#272B32; --fx-solid-bd:#353A43; --fx-solid-ink:#9AA1AC;
+  --fx-open-bg:#1C1F24; --fx-open-bd:#5B626D; --fx-open-ink:#9AA1AC;
+  --ac-bg:#4A505A; --ac-bd:#A0A7B2; --ac-done-bg:#32353A; --ac-done-bd:#5D6065;
+  --ex-bg:#1E3962; --ex-bd:#5F98F1; --ex-done-bg:#2A2F37; --ex-done-bd:#505966;
+  --ap-bg:#4B3E10; --ap-bd:#E1B52C; --ap-done-bg:#35322A; --ap-done-bd:#686250;
+  --ra-bg:#4D2220; --ra-bd:#EE6B61; --ra-done-bg:#372D2C; --ra-done-bd:#695553;
+  --et-bg:#352659; --et-bd:#A680EB; --et-done-bg:#312D37; --et-done-bd:#5F586B;
+  --blk-ink:#EEF0F3; --blk-done-ink:#8C9199; color-scheme:dark;
+}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px;max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px;max-width:1440px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
 
-.bar{position:sticky;top:0;z-index:30;background:var(--bg);display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding-block:14px 12px;border-bottom:1px solid var(--line)}
+/* top bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--bg);display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding-block:14px 12px;border-bottom:1px solid var(--line)}
 .brand{font-weight:600;font-size:15px;letter-spacing:-.01em}
+.week{display:flex;align-items:center;gap:6px}
+.week h1{font-size:18px;font-weight:600;margin:0 6px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sem{font-family:var(--f-mono);font-size:12px;color:var(--muted);white-space:nowrap}
 .spacer{flex:1}
+.btn{border:1px solid var(--line-strong);background:var(--surface);border-radius:var(--radius);padding:6px 11px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.icon{padding:6px 9px;line-height:1}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--danger)}
 .pill{font-size:12px;color:var(--muted);border:1px dashed var(--line-strong);border-radius:99px;padding:3px 10px;white-space:nowrap}
 
-.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:12px}
-.sec-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.banner{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--accent-soft);border-radius:var(--radius);padding:10px 14px;font-size:13px}
+.banner[hidden]{display:none!important}
+
+/* section headings */
+.sec-h{display:flex;align-items:center;gap:10px;margin:0 0 8px;flex-wrap:wrap}
 .sec-h h2{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0}
+.sec-h p{margin:0;font-size:12px;color:var(--muted);min-width:0}
+.view-toggle{display:inline-flex;border:1px solid var(--line-strong);border-radius:99px;overflow:hidden;flex:none}
+.view-toggle button{border:none;background:var(--surface);padding:5px 12px;cursor:pointer;font-size:12px;color:var(--muted)}
+.view-toggle button+button{border-left:1px solid var(--line-strong)}
+.view-toggle button.on{background:var(--accent);color:var(--accent-ink)}
 
-.btn{border:1px solid var(--line-strong);background:var(--surface);border-radius:var(--radius);padding:7px 13px;cursor:pointer;white-space:nowrap}
-.btn:hover{border-color:var(--muted)}
-.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.btn.primary:hover{filter:brightness(1.07)}
-.btn:disabled{opacity:.55;cursor:default;filter:none}
-.btnrow{display:flex;flex-wrap:wrap;gap:8px}
+/* dump */
+.dump{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.dump-free{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px;min-height:88px;transition:border-color .12s,background .12s}
+.dump-free.over{border-color:var(--accent);background:var(--accent-soft)}
+.dump-free .idea{flex:0 1 auto;max-width:260px}
+.dump-free .empty{color:var(--muted);font-size:12px;align-self:center}
+.fab{position:fixed;right:max(18px,env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:40;width:52px;height:52px;border-radius:50%;border:none;background:var(--accent);color:var(--accent-ink);font-size:28px;line-height:1;cursor:pointer;box-shadow:0 4px 16px color-mix(in srgb,var(--ink) 30%,transparent)}
+.fab:hover{filter:brightness(1.07)}
+.catpick{display:flex;flex-wrap:wrap;gap:6px}
+.catpick button{display:flex;align-items:center;gap:6px;border:1px solid var(--line-strong);background:var(--bg);border-radius:99px;padding:6px 13px;cursor:pointer;font-size:13px;color:var(--ink)}
+.catpick button.on{border-color:var(--accent);background:var(--accent-soft)}
+.cat-col{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px;min-width:0;min-height:120px;transition:border-color .12s}
+.cat-col.over,.day-cell.over{border-color:var(--accent);background:var(--accent-soft)}
+.cat-title{display:flex;align-items:center;gap:7px;font-weight:600;font-size:13px}
+.sw{width:10px;height:10px;border-radius:3px;background:var(--c-bg);border:1.5px solid var(--c-bd);flex:none}
+.cat-title .n{margin-left:auto;font-family:var(--f-mono);font-size:11px;color:var(--muted);font-weight:400}
+.quick{display:flex;margin-top:auto}
+.quick input{width:100%;min-width:0;border:1px dashed var(--line-strong);background:transparent;border-radius:5px;padding:5px 8px;font-size:13px}
+.quick input::placeholder{color:var(--muted)}
 
-.field{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
-.field input,.field select{background:var(--bg);border:1px solid var(--line-strong);border-radius:5px;padding:7px 9px;color:var(--ink);font-size:14px;min-width:0}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-
-/* task chips (planner's .idea look) */
-.tasks{display:flex;flex-direction:column;gap:6px}
-.idea{display:flex;flex-direction:column;gap:1px;background:var(--c-bg,var(--surface));border-left:3px solid var(--c-bd,var(--line-strong));border-radius:5px;padding:6px 9px;color:var(--blk-ink);min-width:0}
+/* idea chip */
+.idea{display:flex;flex-direction:column;gap:1px;background:var(--c-bg);border-left:3px solid var(--c-bd);border-radius:5px;padding:5px 8px;cursor:grab;color:var(--blk-ink);min-width:0}
+.idea:active{cursor:grabbing}
 .idea .nm{font-size:13px;font-weight:500;overflow-wrap:anywhere}
-.idea .mt{font-family:var(--f-mono);font-size:11px;opacity:.8;display:flex;gap:10px;flex-wrap:wrap}
+.idea .mt{font-family:var(--f-mono);font-size:11px;opacity:.75;display:flex;gap:8px;flex-wrap:wrap}
+.idea.done .nm{text-decoration:line-through}
+
 .cat-academics{--c-bg:var(--ac-bg);--c-bd:var(--ac-bd)}
 .cat-extracurricular{--c-bg:var(--ex-bg);--c-bd:var(--ex-bd)}
 .cat-application{--c-bg:var(--ap-bg);--c-bd:var(--ap-bd)}
 .cat-ra{--c-bg:var(--ra-bg);--c-bd:var(--ra-bd)}
 .cat-etc{--c-bg:var(--et-bg);--c-bd:var(--et-bd)}
+.done.cat-academics{--c-bg:var(--ac-done-bg);--c-bd:var(--ac-done-bd)}
+.done.cat-extracurricular{--c-bg:var(--ex-done-bg);--c-bd:var(--ex-done-bd)}
+.done.cat-application{--c-bg:var(--ap-done-bg);--c-bd:var(--ap-done-bd)}
+.done.cat-ra{--c-bg:var(--ra-done-bg);--c-bd:var(--ra-done-bd)}
+.done.cat-etc{--c-bg:var(--et-done-bg);--c-bd:var(--et-done-bd)}
 
-.result{font-family:var(--f-mono);font-size:12px;white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 11px;color:var(--muted);min-height:20px}
-.result.err{color:var(--danger);border-color:var(--danger)}
-.result.ok{color:var(--ok)}
-.empty{color:var(--muted);font-size:12px}
+/* timetable */
+.tt-scroll{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.tt{min-width:820px;display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr))}
+.tt-head{position:sticky;top:0;display:contents}
+.dh{padding:8px 8px 7px;border-bottom:1px solid var(--line);border-left:1px solid var(--line);display:flex;flex-direction:column;gap:1px;min-width:0}
+.dh .d1{display:flex;align-items:baseline;gap:6px}
+.dh .wd{font-size:12px;color:var(--muted)}
+.dh .dt{font-family:var(--f-mono);font-size:15px;font-weight:500;font-variant-numeric:tabular-nums}
+.dh .hol{font-size:11px;color:var(--danger);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dh.today .dt{color:var(--accent-ink);background:var(--accent);border-radius:4px;padding:0 5px}
+.dh.weekend .wd{color:var(--danger)}
+.corner{border-bottom:1px solid var(--line)}
+.times{position:relative}
+.times span{position:absolute;right:8px;transform:translateY(-50%);font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.times span:first-child{transform:none}
+.col{position:relative;border-left:1px solid var(--line);
+  background-image:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px calc(var(--rowh)*2));
+}
+.col.today{background-color:color-mix(in srgb,var(--accent-soft) 45%,transparent)}
+.col.holiday{background-color:color-mix(in srgb,var(--danger) 5%,transparent)}
+.col::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:repeating-linear-gradient(to bottom,transparent 0 var(--rowh),color-mix(in srgb,var(--line) 55%,transparent) var(--rowh) calc(var(--rowh) + 1px),transparent calc(var(--rowh) + 1px) calc(var(--rowh)*2))}
+
+.fx{position:absolute;left:3px;right:3px;border-radius:5px;padding:4px 6px;font-size:11.5px;overflow:hidden;z-index:1}
+.fx.solid{background:var(--fx-solid-bg);border:1px solid var(--fx-solid-bd);color:var(--fx-solid-ink)}
+.fx.open{background:var(--fx-open-bg);border:1.5px dashed var(--fx-open-bd);color:var(--fx-open-ink)}
+.fx .fn{font-weight:500;overflow-wrap:anywhere}
+.fx .ft{font-family:var(--f-mono);font-size:10.5px;opacity:.8}
+
+.blk{position:absolute;left:5px;right:5px;z-index:3;background:var(--c-bg);border-left:3px solid var(--c-bd);border-radius:5px;padding:3px 6px 3px 5px;color:var(--blk-ink);cursor:grab;overflow:hidden;display:flex;flex-direction:column;gap:1px;box-shadow:0 1px 0 color-mix(in srgb,var(--ink) 8%,transparent)}
+.blk.in-open{left:9px;right:9px}
+.blk .r1{display:flex;align-items:flex-start;gap:5px;min-width:0}
+.blk .nm{font-size:12.5px;font-weight:500;line-height:1.3;overflow-wrap:anywhere;min-width:0}
+.blk .mt{font-family:var(--f-mono);font-size:10.5px;opacity:.8;display:flex;flex-wrap:wrap;gap:0 7px;padding-left:19px}
+.blk .dd{font-weight:500}
+.blk.done{color:var(--blk-done-ink)}
+.blk.done .nm{text-decoration:line-through}
+.blk.short{flex-direction:row;align-items:center;gap:6px;padding-block:1px}
+.blk.short .mt{padding-left:0;flex-wrap:nowrap;white-space:nowrap}
+.blk.short .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chk{appearance:none;flex:none;width:14px;height:14px;margin:1px 0 0;border:1.5px solid var(--c-bd);border-radius:3px;background:var(--surface);cursor:pointer;display:grid;place-content:center}
+.chk:checked{background:var(--c-bd)}
+.chk:checked::after{content:"";width:7px;height:4px;border-left:2px solid var(--surface);border-bottom:2px solid var(--surface);transform:translateY(-1px) rotate(-45deg)}
+.dd.urgent{color:var(--danger)}
+.blk.done .dd.urgent{color:inherit}
+
+.ghost{position:absolute;left:3px;right:3px;z-index:5;border-radius:5px;border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);pointer-events:none;font-family:var(--f-mono);font-size:11px;padding:2px 6px;color:var(--accent)}
+.ghost.bad{border-color:var(--danger);background:color-mix(in srgb,var(--danger) 12%,transparent);color:var(--danger)}
+.nowline{position:absolute;left:0;right:0;height:0;border-top:2px solid var(--now);z-index:4;pointer-events:none}
+.nowline::before{content:"";position:absolute;left:-4px;top:-5px;width:8px;height:8px;border-radius:50%;background:var(--now)}
+
+/* day ideas */
+.days{overflow-x:auto}
+.days-grid{min-width:820px;display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));gap:0}
+.day-cell{border:1px solid var(--line);border-right:none;background:var(--surface);padding:8px 6px;display:flex;flex-direction:column;gap:5px;min-height:110px;min-width:0}
+.day-cell:last-child{border-right:1px solid var(--line);border-radius:0 8px 8px 0}
+.day-cell:nth-child(2){border-radius:8px 0 0 8px}
+.day-cell .lbl{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.days-lead{font-size:11px;color:var(--muted);padding:8px 6px 0 0;text-align:right}
+.empty{font-size:12px;color:var(--muted);opacity:.8}
+
+/* dialogs */
+dialog{border:1px solid var(--line-strong);border-radius:10px;background:var(--surface);color:var(--ink);padding:0;width:min(460px,calc(100vw - 32px));max-height:min(92dvh,calc(100vh - 32px));overflow:auto;overscroll-behavior:contain}
+dialog::backdrop{background:color-mix(in srgb,#0B0D12 45%,transparent)}
+.dlg{padding:18px 18px 16px;display:flex;flex-direction:column;gap:12px}
+.dlg h3{margin:0;font-size:16px;font-weight:600}
+.dlg p.sub{margin:-6px 0 0;font-size:12.5px;color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.field input,.field select,.field textarea{background:var(--bg);border:1px solid var(--line-strong);border-radius:5px;padding:7px 9px;color:var(--ink);font-size:14px;min-width:0}
+.field textarea{font-family:var(--f-mono);font-size:12.5px;min-height:120px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;position:sticky;bottom:0;z-index:1;background:var(--surface);margin:2px -18px -16px;padding:10px 18px 14px;border-top:1px solid var(--line)}
+.acts .left{margin-right:auto;display:flex;gap:8px;flex-wrap:wrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:1px solid var(--line-strong);background:var(--bg);border-radius:99px;padding:5px 12px;cursor:pointer;font-family:var(--f-mono);font-size:13px}
+.chips button:hover,.chips button.on{border-color:var(--accent);color:var(--accent)}
+.dows{display:flex;gap:4px;flex-wrap:wrap}
+.dows label{display:flex;align-items:center;justify-content:center;width:34px;height:30px;border:1px solid var(--line-strong);border-radius:5px;cursor:pointer;font-size:13px;color:var(--ink)}
+.dows input{position:absolute;opacity:0;pointer-events:none}
+.dows label:has(input:checked){background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.kinds{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kinds label{border:1px solid var(--line-strong);border-radius:6px;padding:8px 10px;cursor:pointer;display:flex;gap:8px;align-items:flex-start;color:var(--ink);font-size:13px}
+.kinds label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.kinds .demo{width:22px;height:22px;border-radius:4px;flex:none}
+.kinds .demo.solid{background:var(--fx-solid-bg);border:1px solid var(--fx-solid-bd)}
+.kinds .demo.open{background:var(--fx-open-bg);border:1.5px dashed var(--fx-open-bd)}
+.kinds small{display:block;color:var(--muted);font-size:11.5px}
+.fx-list{display:flex;flex-direction:column;gap:4px;max-height:220px;overflow:auto}
+.fx-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;background:var(--bg);font-size:13px}
+.fx-item .k{width:12px;height:12px;border-radius:3px;flex:none}
+.fx-item .k.solid{background:var(--fx-solid-bg);border:1px solid var(--fx-solid-bd)}
+.fx-item .k.open{border:1.5px dashed var(--fx-open-bd)}
+.fx-item .t{font-family:var(--f-mono);font-size:12px;color:var(--muted);white-space:nowrap}
+.fx-item .x{margin-left:auto;border:none;background:none;cursor:pointer;color:var(--muted);font-size:16px;line-height:1;padding:2px 4px}
+.fx-item .x:hover{color:var(--danger)}
+hr.sep{border:none;border-top:1px solid var(--line);margin:2px 0}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:7px;font-size:13px;z-index:100;max-width:calc(100vw - 32px)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
+
 <div class="wrap">
   <header class="bar">
-    <span class="brand">할 일 버튼</span>
+    <span class="brand">주간 플래너</span>
+    <div class="week">
+      <button class="btn icon" id="prevW" aria-label="이전 주">‹</button>
+      <h1 id="weekLbl">—</h1>
+      <button class="btn icon" id="nextW" aria-label="다음 주">›</button>
+      <button class="btn" id="todayW">오늘</button>
+    </div>
+    <span class="sem" id="semLbl"></span>
     <span class="spacer"></span>
-    <span class="pill">Todoist · MCP</span>
+    <span class="pill" id="syncStatus" title="로컬 저장만 사용 중입니다 (Todoist 동기화는 다음 단계에서)">로컬 모드</span>
+    <button class="btn" id="openFixed">고정 스케줄</button>
+    <button class="btn" id="openSettings">설정</button>
   </header>
 
-  <!-- 1. list -->
-  <section class="card">
-    <div class="sec-h"><h2>내 할 일</h2></div>
-    <div class="btnrow"><button class="btn primary" id="btnList">내 할 일 불러오기</button></div>
-    <div class="tasks" id="taskList"><span class="empty">아직 불러오지 않았어요.</span></div>
-    <div class="result" id="resList" hidden></div>
+  <div class="banner" id="exBanner" hidden>
+    <span>지금 보이는 수업·아이디어는 <b>예시</b>예요. 고정 스케줄에 실제 시간표를 넣고 예시는 지워주세요.</span>
+    <button class="btn" id="clearEx">예시 지우기</button>
+  </div>
+
+  <section>
+    <div class="sec-h"><h2>Idea Dump</h2><p>날짜 미정 · 끌어다 시간표나 날짜 칸에 놓으세요</p><span class="spacer"></span><div class="view-toggle" id="viewToggle"><button data-view="free">모아보기</button><button data-view="grouped">카테고리별</button></div></div>
+    <div class="dump" id="dump"></div>
   </section>
 
-  <!-- 2. create -->
-  <section class="card">
-    <div class="sec-h"><h2>할 일 추가</h2></div>
-    <div class="field"><label for="cName">이름</label><input id="cName" placeholder="할 일 이름" autocomplete="off"></div>
-    <div class="row2">
-      <div class="field"><label for="cDate">날짜 (선택)</label><input id="cDate" type="date"></div>
-      <div class="field"><label for="cTime">시간 (선택)</label><input id="cTime" type="time" step="300"></div>
-    </div>
-    <div class="field"><label for="cLabel">라벨 (선택)</label>
-      <select id="cLabel">
-        <option value="">(없음)</option>
-        <option value="Academics">Academics</option>
-        <option value="Extracurricular">Extracurricular</option>
-        <option value="Application">Application</option>
-        <option value="RA">RA</option>
-        <option value="etc">etc</option>
-      </select>
-    </div>
-    <div class="btnrow"><button class="btn primary" id="btnAdd">할 일 추가</button></div>
-    <div class="result" id="resAdd" hidden></div>
+  <section>
+    <div class="sec-h"><h2>Timetable</h2><p>회색 면 = 배치 불가 · 점선 = 안에 task 배치 가능</p></div>
+    <div class="tt-scroll"><div class="tt" id="tt"></div></div>
   </section>
 
-  <!-- 3. status -->
-  <section class="card">
-    <div class="sec-h"><h2>완료 / 되돌리기</h2></div>
-    <div class="field"><label for="sActive">완료할 일 (열린 할 일 중에서 · 먼저 "내 할 일 불러오기")</label>
-      <select id="sActive"><option value="">— 목록을 먼저 불러오세요 —</option></select>
-    </div>
-    <div class="btnrow"><button class="btn primary" id="btnDone">완료</button></div>
-    <div class="btnrow"><button class="btn" id="btnLoadDone">완료한 일 불러오기</button></div>
-    <div class="field"><label for="sDone">되돌릴 일 (최근 7일 완료 · 폰에서 완료한 것도 포함)</label>
-      <select id="sDone"><option value="">— 불러오지 않았어요 —</option></select>
-    </div>
-    <div class="btnrow"><button class="btn" id="btnReopen">되돌리기</button></div>
-    <div class="result" id="resStatus" hidden></div>
+  <section>
+    <div class="sec-h"><h2>날짜별 Idea</h2><p>날짜는 정했지만 시간은 아직 · 시간표로 끌어올리면 task가 됩니다</p></div>
+    <div class="days"><div class="days-grid" id="days"></div></div>
   </section>
 </div>
 
+<button class="fab" id="fab" aria-label="아이디어 추가" title="아이디어 추가">+</button>
+
+<dialog id="dlgAdd"><form class="dlg" id="formAdd" method="dialog"></form></dialog>
+<dialog id="dlgItem"><form class="dlg" id="formItem" method="dialog"></form></dialog>
+<dialog id="dlgDur"><form class="dlg" id="formDur" method="dialog"></form></dialog>
+<dialog id="dlgFixed"><form class="dlg" id="formFixed" method="dialog"></form></dialog>
+<dialog id="dlgSet"><form class="dlg" id="formSet" method="dialog"></form></dialog>
+
 <script>
-const $=s=>document.querySelector(s);
-const CATS=["academics","extracurricular","application","ra","etc"];
+(function(){
+"use strict";
+const CATS=[
+  {id:"academics",name:"Academics"},
+  {id:"extracurricular",name:"Extracurricular"},
+  {id:"application",name:"Application"},
+  {id:"ra",name:"RA"},
+  {id:"etc",name:"etc"}];
+const CATNAME=Object.fromEntries(CATS.map(c=>[c.id,c.name]));
+const WD=["월","화","수","목","금","토","일"];
+const LSKEY="weekly-planner-v1";
+
+/* ---------- date utils ---------- */
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parse=s=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d,12)};
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return ymd(d)};
+const dowOf=s=>(parse(s).getDay()+6)%7;
+const mondayOf=s=>addDays(s,-dowOf(s));
+const diffDays=(a,b)=>Math.round((parse(b)-parse(a))/864e5);
+const todayStr=()=>ymd(new Date());
+const md=s=>{const d=parse(s);return (d.getMonth()+1)+"/"+d.getDate()};
+const hm=m=>pad(Math.floor(m/60))+":"+pad(m%60);
+const toMin=t=>{const[h,m]=t.split(":").map(Number);return h*60+m};
+const durTxt=m=>{if(!m)return"";const h=Math.floor(m/60),r=m%60;return (h?h+"h":"")+(r?(h?" ":"")+r+"m":"")};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid=()=>Math.random().toString(36).slice(2,10);
+function dday(dl){if(!dl)return null;const n=diffDays(todayStr(),dl);return {txt:n>0?"D-"+n:n===0?"D-day":"D+"+(-n),urgent:n<=2}}
 
-// Completed tasks come from the server (list_completed_tasks), so the 되돌리기
-// dropdown includes tasks finished anywhere — including on the phone.
-async function doLoadCompleted(){
-  const b=$("#btnLoadDone");b.disabled=true;
-  try{
-    const d=await postJSON("/api/list_completed_tasks",{days:7});
-    if(!d.ok){show($("#resStatus"),d.error||"오류","err");return;}
-    const tasks=parseTasks(d.text),sel=$("#sDone");
-    sel.innerHTML=tasks.length
-      ? tasks.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}</option>`).join("")
-      : '<option value="">— 최근 완료한 할 일 없음 —</option>';
-  }catch(e){show($("#resStatus"),"서버에 연결하지 못했어요.","err");}
-  finally{b.disabled=false;}
+/* ---------- state ---------- */
+const DEFAULT_HOL=`2026-09-24 추석 연휴
+2026-09-25 추석
+2026-09-26 추석 연휴
+2026-10-03 개천절
+2026-10-05 대체공휴일
+2026-10-09 한글날
+2026-12-25 성탄절`;
+function parseHol(txt){const out={};txt.split(/\n/).forEach(l=>{const m=l.trim().match(/^(\d{4}-\d{2}-\d{2})\s*(.*)$/);if(m)out[m[1]]=m[2]||"공휴일"});return out}
+
+function seed(){
+  const t=todayStr(), w=mondayOf(t);
+  const fx=(name,dows,s,e,kind)=>({id:uid(),name,dows,start:toMin(s),end:toMin(e),kind,example:true});
+  const it=(o)=>Object.assign({id:uid(),dur:null,deadline:null,date:null,start:null,done:false,example:true},o);
+  return {
+    v:1,
+    settings:{startHour:8,endHour:24,semName:"2026-2학기",semStart:"2026-09-01",semEnd:"2026-12-21",holidays:DEFAULT_HOL,dumpView:"free"},
+    fixed:[
+      fx("전공 강의 (예시)",[0,2],"10:30","11:45","solid"),
+      fx("교양 강의 (예시)",[1,3],"13:00","14:15","solid"),
+      fx("공강 · 도서관 (예시)",[1,3],"15:00","18:00","open"),
+      fx("RA 근무 (예시)",[4],"09:00","12:00","open")],
+    items:[
+      it({name:"중간고사 범위 정리",cat:"academics",dur:120,deadline:addDays(w,8)}),
+      it({name:"장학금 자기소개서 초안",cat:"application",dur:90,deadline:addDays(w,12)}),
+      it({name:"동아리 회의 자료",cat:"extracurricular"}),
+      it({name:"실험 데이터 정리",cat:"ra",dur:60}),
+      it({name:"장보기",cat:"etc",dur:30}),
+      it({name:"과제 3번 풀기",cat:"academics",dur:90,deadline:addDays(w,4),date:addDays(w,1),start:toMin("15:30")}),
+      it({name:"인턴 지원서 제출",cat:"application",dur:60,deadline:addDays(w,3),date:addDays(w,2),start:toMin("19:00"),done:true}),
+      it({name:"RA 주간 보고",cat:"ra",dur:60,date:addDays(w,4),start:toMin("10:00")}),
+      it({name:"교수님 메일 답장",cat:"academics",dur:30,date:addDays(w,3)}),
+      it({name:"러닝",cat:"etc",date:addDays(w,5)})],
+    example:true
+  };
+}
+let S=null;
+try{const raw=localStorage.getItem(LSKEY);if(raw)S=JSON.parse(raw)}catch(e){}
+if(!S||!S.settings)S=seed();
+let HOL=parseHol(S.settings.holidays||"");
+let weekStart=mondayOf(todayStr());
+
+/* ---------- persistence (localStorage) ---------- */
+function save(){
+  HOL=parseHol(S.settings.holidays||"");
+  try{localStorage.setItem(LSKEY,JSON.stringify(S))}catch(e){}
 }
 
-function show(el,msg,kind){el.hidden=false;el.textContent=msg;el.className="result"+(kind?" "+kind:"");}
+/* ---------- helpers ---------- */
+const byId=id=>S.items.find(i=>i.id===id);
+function fixedOn(date){
+  const st=S.settings;
+  if(date<st.semStart||date>st.semEnd||HOL[date])return [];
+  const d=dowOf(date);
+  return S.fixed.filter(f=>f.dows.includes(d));
+}
+function checkSlot(item,date,start,dur){
+  const st=S.settings, end=start+dur;
+  if(start<st.startHour*60||end>st.endHour*60)return "표시 시간 범위를 벗어나요";
+  for(const f of fixedOn(date)) if(f.kind==="solid"&&start<f.end&&end>f.start) return `'${f.name}'과 겹쳐요`;
+  for(const o of S.items) if(o.id!==item.id&&o.date===date&&o.start!=null){const oe=o.start+(o.dur||30);if(start<oe&&end>o.start)return `'${o.name}'과 겹쳐요`}
+  return null;
+}
+function insideOpen(item){return fixedOn(item.date).some(f=>f.kind==="open"&&item.start>=f.start&&item.start+(item.dur||30)<=f.end)}
+let toastT;
+function toast(msg){let t=document.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";t.setAttribute("role","status");document.body.appendChild(t)}t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
 
-async function postJSON(url,body){
-  const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})});
-  return r.json();
+/* ---------- render ---------- */
+const $=id=>document.getElementById(id);
+function ideaHTML(i,showDate){
+  const d=dday(i.deadline),meta=[];
+  if(i.dur)meta.push(durTxt(i.dur));
+  if(i.deadline)meta.push(`<span class="dd ${d.urgent&&!i.done?"urgent":""}">${md(i.deadline)} ${d.txt}</span>`);
+  return `<div class="idea cat-${i.cat}${i.done?" done":""}" draggable="true" data-item="${i.id}" tabindex="0" title="클릭해서 편집">
+    <span class="nm">${esc(i.name)}</span>${meta.length?`<span class="mt">${meta.join("")}</span>`:""}</div>`;
+}
+function render(){
+  const st=S.settings,today=todayStr();
+  $("exBanner").hidden=!S.example;
+  /* header */
+  const we=addDays(weekStart,6), a=parse(weekStart), b=parse(we);
+  $("weekLbl").textContent=`${a.getMonth()+1}월 ${a.getDate()}일 – ${a.getMonth()===b.getMonth()?"":(b.getMonth()+1)+"월 "}${b.getDate()}일`;
+  const wk=Math.floor(diffDays(mondayOf(st.semStart),weekStart)/7)+1;
+  $("semLbl").textContent=(we<st.semStart||weekStart>st.semEnd)?`${st.semName} 기간 외`:`${st.semName} · ${wk}주차`;
+
+  /* dump */
+  const dumpEl=$("dump"),view=st.dumpView||"free";
+  document.querySelectorAll("#viewToggle button").forEach(b=>b.classList.toggle("on",b.dataset.view===view));
+  if(view==="grouped"){
+    dumpEl.className="dump";dumpEl.removeAttribute("data-zone");
+    dumpEl.innerHTML=CATS.map(c=>{
+      const list=S.items.filter(i=>i.cat===c.id&&!i.date);
+      return `<div class="cat-col cat-${c.id}" data-zone="dump" data-cat="${c.id}">
+        <div class="cat-title"><span class="sw"></span>${c.name}<span class="n">${list.length}</span></div>
+        ${list.map(i=>ideaHTML(i)).join("")}
+        <div class="quick"><input id="q-${c.id}" data-quick="${c.id}" placeholder="+ 아이디어 추가" aria-label="${c.name}에 아이디어 추가"></div>
+      </div>`}).join("");
+  }else{
+    dumpEl.className="dump-free";dumpEl.setAttribute("data-zone","dump");
+    const list=S.items.filter(i=>!i.date);
+    dumpEl.innerHTML=list.map(i=>ideaHTML(i)).join("")||`<span class="empty">아이디어가 없어요. 오른쪽 아래 + 버튼으로 추가하세요.</span>`;
+  }
+
+  /* timetable */
+  const H0=st.startHour,H1=st.endHour,rows=(H1-H0)*2,rh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--rowh"))||22;
+  const colH=rows*rh;
+  const days=[...Array(7)].map((_,k)=>addDays(weekStart,k));
+  let html=`<div class="corner"></div>`;
+  days.forEach((d,k)=>{const h=HOL[d];html+=`<div class="dh${d===today?" today":""}${k>4?" weekend":""}"><div class="d1"><span class="wd">${WD[k]}</span><span class="dt">${parse(d).getDate()}</span></div>${h?`<span class="hol">${esc(h)}</span>`:""}</div>`});
+  html+=`<div class="times" style="height:${colH}px">${[...Array(H1-H0)].map((_,k)=>`<span style="top:${k*2*rh}px">${pad(H0+k)}</span>`).join("")}</div>`;
+  const y=m=>(m-H0*60)/30*rh;
+  days.forEach(d=>{
+    let inner="";
+    fixedOn(d).forEach(f=>{
+      const s=Math.max(f.start,H0*60),e=Math.min(f.end,H1*60); if(e<=s)return;
+      inner+=`<div class="fx ${f.kind}" style="top:${y(s)}px;height:${y(e)-y(s)}px"><div class="fn">${esc(f.name)}</div><div class="ft">${hm(f.start)}–${hm(f.end)}</div></div>`});
+    S.items.filter(i=>i.date===d&&i.start!=null).forEach(i=>{
+      const dur=i.dur||30,s=Math.max(i.start,H0*60),e=Math.min(i.start+dur,H1*60); if(e<=s)return;
+      const hpx=y(e)-y(s)-2, short=hpx<40, dd=dday(i.deadline);
+      const meta=[`<span>${hm(i.start)} · ${durTxt(dur)}</span>`];
+      if(i.deadline)meta.push(`<span class="dd ${dd.urgent&&!i.done?"urgent":""}">${md(i.deadline)} ${dd.txt}</span>`);
+      inner+=`<div class="blk cat-${i.cat}${i.done?" done":""}${short?" short":""}${insideOpen(i)?" in-open":""}" style="top:${y(s)+1}px;height:${hpx}px" draggable="true" data-item="${i.id}" tabindex="0" title="${esc(i.name)} · 클릭해서 편집">
+        <div class="r1"><input type="checkbox" class="chk" data-done="${i.id}" ${i.done?"checked":""} aria-label="완료"><span class="nm">${esc(i.name)}</span></div>
+        <div class="mt">${short?(i.deadline?meta[1]:""):meta.join("")}</div></div>`});
+    if(d===today){const n=new Date(),nm=n.getHours()*60+n.getMinutes(); if(nm>=H0*60&&nm<=H1*60)inner+=`<div class="nowline" style="top:${y(nm)}px"></div>`}
+    html+=`<div class="col${d===today?" today":""}${HOL[d]?" holiday":""}" style="height:${colH}px" data-zone="grid" data-date="${d}">${inner}</div>`;
+  });
+  $("tt").innerHTML=html;
+
+  /* day ideas */
+  $("days").innerHTML=`<div class="days-lead">idea</div>`+days.map((d,k)=>{
+    const list=S.items.filter(i=>i.date===d&&i.start==null);
+    return `<div class="day-cell" data-zone="day" data-date="${d}"><span class="lbl">${WD[k]} ${md(d)}</span>${list.map(i=>ideaHTML(i)).join("")||`<span class="empty">비어 있음</span>`}</div>`}).join("");
 }
 
-// Parse the list tool's plain text: lines like "- [id] name | due: ... | labels: a, b"
-function parseTasks(text){
-  const out=[];
-  for(const line of String(text).split("\n")){
-    const m=line.match(/^-\s*\[([^\]]+)\]\s*(.*)$/);
-    if(!m)continue;
-    const id=m[1];
-    const parts=m[2].split(" | ");
-    const name=parts[0].trim();
-    let due="",labels=[];
-    for(const p of parts.slice(1)){
-      if(p.startsWith("due:"))due=p.slice(4).trim();
-      else if(p.startsWith("labels:"))labels=p.slice(7).split(",").map(s=>s.trim()).filter(Boolean);
+/* ---------- quick add ---------- */
+document.addEventListener("keydown",e=>{
+  const q=e.target.dataset&&e.target.dataset.quick;
+  if(q&&e.key==="Enter"&&!e.isComposing){
+    const v=e.target.value.trim(); if(!v)return;
+    S.items.push({id:uid(),name:v,cat:q,dur:null,deadline:null,date:null,start:null,done:false});
+    save();render();const el=$("q-"+q);if(el)el.focus();
+  }
+  if(e.key==="Enter"&&e.target.dataset&&e.target.dataset.item&&!q){openItem(e.target.dataset.item)}
+});
+
+/* ---------- done toggle & click to edit ---------- */
+document.addEventListener("click",e=>{
+  const c=e.target.closest("[data-done]");
+  if(c){e.stopPropagation();const i=byId(c.dataset.done);if(i){i.done=c.checked;save();render()}return}
+  const it=e.target.closest("[data-item]");
+  if(it&&!e.target.closest("dialog"))openItem(it.dataset.item);
+});
+
+/* ---------- drag & drop ---------- */
+let drag=null,ghost=null;
+document.addEventListener("dragstart",e=>{
+  const el=e.target.closest&&e.target.closest("[data-item]"); if(!el)return;
+  const r=el.getBoundingClientRect();
+  drag={id:el.dataset.item,grab:el.classList.contains("blk")?e.clientY-r.top:6};
+  e.dataTransfer.effectAllowed="move";
+  try{e.dataTransfer.setData("text/plain",drag.id)}catch(_){}
+});
+document.addEventListener("dragend",()=>{drag=null;clearOver()});
+function clearOver(){document.querySelectorAll(".over").forEach(x=>x.classList.remove("over"));if(ghost){ghost.remove();ghost=null}}
+function slotFromEvent(col,e){
+  const st=S.settings,rh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--rowh"))||22;
+  const r=col.getBoundingClientRect(),yy=e.clientY-r.top-drag.grab;
+  let s=st.startHour*60+Math.round(yy/rh)*30;
+  return Math.max(st.startHour*60,Math.min(s,st.endHour*60-30));
+}
+document.addEventListener("dragover",e=>{
+  if(!drag)return;
+  const z=e.target.closest&&e.target.closest("[data-zone]");
+  document.querySelectorAll(".over").forEach(x=>{if(x!==z)x.classList.remove("over")});
+  if(!z){if(ghost){ghost.remove();ghost=null}return}
+  e.preventDefault();
+  if(z.dataset.zone==="grid"){
+    const item=byId(drag.id); if(!item)return;
+    const s=slotFromEvent(z,e),dur=item.dur||60,rh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--rowh"))||22;
+    const bad=checkSlot(Object.assign({},item,{dur}),z.dataset.date,s,dur);
+    if(!ghost){ghost=document.createElement("div");ghost.className="ghost"}
+    if(ghost.parentNode!==z)z.appendChild(ghost);
+    ghost.className="ghost"+(bad?" bad":"");
+    ghost.style.top=((s-S.settings.startHour*60)/30*rh)+"px";
+    ghost.style.height=(dur/30*rh)+"px";
+    ghost.textContent=bad?bad:hm(s)+(item.dur?"":" · 소요시간 입력");
+  }else{
+    if(ghost){ghost.remove();ghost=null}
+    z.classList.add("over");
+  }
+});
+document.addEventListener("drop",e=>{
+  if(!drag)return;
+  const z=e.target.closest&&e.target.closest("[data-zone]"); if(!z)return;
+  e.preventDefault();
+  const item=byId(drag.id); const zone=z.dataset.zone;
+  if(zone==="grid"){const s=slotFromEvent(z,e),date=z.dataset.date;clearOver();drag=null;placeOnGrid(item,date,s);return}
+  clearOver();drag=null;
+  if(!item)return;
+  if(zone==="dump"){item.date=null;item.start=null;if(z.dataset.cat)item.cat=z.dataset.cat}
+  if(zone==="day"){item.date=z.dataset.date;item.start=null}
+  save();render();
+});
+function placeOnGrid(item,date,start){
+  if(!item)return;
+  if(!item.dur){askDuration(item,dur=>{const bad=checkSlot(item,date,start,dur);if(bad){toast("놓을 수 없어요: "+bad);return}item.dur=dur;item.date=date;item.start=start;save();render()});return}
+  const bad=checkSlot(item,date,start,item.dur);
+  if(bad){toast("놓을 수 없어요: "+bad);return}
+  item.date=date;item.start=start;save();render();
+}
+
+/* ---------- duration dialog ---------- */
+function askDuration(item,cb){
+  const f=$("formDur");
+  f.innerHTML=`<h3>소요시간이 얼마나 걸릴까요?</h3><p class="sub">${esc(item.name)}</p>
+    <div class="chips">${[30,60,90,120,180].map(m=>`<button type="button" data-m="${m}">${durTxt(m)}</button>`).join("")}</div>
+    <div class="field"><label for="durCustom">직접 입력 (분, 30분 단위)</label><input id="durCustom" type="number" min="30" step="30" placeholder="예: 150"></div>
+    <div class="acts"><button class="btn" value="cancel">취소</button><button class="btn primary" type="button" id="durOk">배치하기</button></div>`;
+  const dlg=$("dlgDur");
+  const go=m=>{m=Math.max(30,Math.round(m/30)*30);dlg.close();cb(m)};
+  f.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>go(+b.dataset.m));
+  $("durOk").onclick=()=>{const v=+$("durCustom").value;if(v>0)go(v);else $("durCustom").focus()};
+  $("durCustom").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();$("durOk").click()}};
+  dlg.showModal();
+}
+
+/* ---------- quick add (floating +) ---------- */
+function openAdd(){
+  const f=$("formAdd");
+  f.innerHTML=`<h3>아이디어 추가</h3><p class="sub">이름과 카테고리만 정하면 Idea Dump로 들어가요.</p>
+    <div class="field"><label for="aName">이름</label><input id="aName" placeholder="할 일 이름" autocomplete="off"></div>
+    <div class="field"><span>카테고리</span><div class="catpick" id="aCat">${CATS.map((c,k)=>`<button type="button" class="cat-${c.id}${k===0?" on":""}" data-cat="${c.id}"><span class="sw"></span>${c.name}</button>`).join("")}</div></div>
+    <div class="acts"><button class="btn" value="cancel">닫기</button><button class="btn primary" type="button" id="aAdd">추가</button></div>
+    <p class="sub" style="margin-top:-2px">Shift+Enter로 연달아 추가할 수 있어요.</p>`;
+  let cat=CATS[0].id;
+  f.querySelectorAll("#aCat button").forEach(b=>b.onclick=()=>{cat=b.dataset.cat;f.querySelectorAll("#aCat button").forEach(x=>x.classList.toggle("on",x===b))});
+  const add=(keepOpen)=>{const name=$("aName").value.trim();if(!name){$("aName").focus();return}
+    S.items.push({id:uid(),name,cat,dur:null,deadline:null,date:null,start:null,done:false});
+    save();render();toast("Idea Dump에 추가했어요");
+    if(keepOpen){$("aName").value="";$("aName").focus()}else{$("dlgAdd").close()}};
+  $("aAdd").onclick=()=>add(false);
+  $("aName").onkeydown=e=>{if(e.key==="Enter"&&!e.isComposing){e.preventDefault();add(e.shiftKey)}};
+  $("dlgAdd").showModal();$("aName").focus();
+}
+
+/* ---------- item editor ---------- */
+function timeOptions(sel){const st=S.settings;let o=`<option value="">시간 미정 (idea)</option>`;for(let m=st.startHour*60;m<st.endHour*60;m+=30)o+=`<option value="${m}"${sel===m?" selected":""}>${hm(m)}</option>`;return o}
+function openItem(id){
+  const i=byId(id); if(!i)return;
+  const f=$("formItem"),placed=i.start!=null;
+  f.innerHTML=`<h3>${placed?"Task":"Idea"} 편집</h3>
+    <div class="field"><label for="eName">이름</label><input id="eName" value="${esc(i.name)}" required></div>
+    <div class="row2">
+      <div class="field"><label for="eCat">카테고리</label><select id="eCat">${CATS.map(c=>`<option value="${c.id}"${c.id===i.cat?" selected":""}>${c.name}</option>`).join("")}</select></div>
+      <div class="field"><label for="eDur">소요시간</label><select id="eDur"><option value="">미정</option>${[30,60,90,120,150,180,240,300,360].map(m=>`<option value="${m}"${i.dur===m?" selected":""}>${durTxt(m)}</option>`).join("")}${i.dur&&![30,60,90,120,150,180,240,300,360].includes(i.dur)?`<option value="${i.dur}" selected>${durTxt(i.dur)}</option>`:""}</select></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label for="eDate">날짜</label><input id="eDate" type="date" value="${i.date||""}"></div>
+      <div class="field"><label for="eStart">시작 시간</label><select id="eStart">${timeOptions(i.start)}</select></div>
+    </div>
+    <div class="field"><label for="eDl">마감일 (선택)</label><input id="eDl" type="date" value="${i.deadline||""}"></div>
+    <label style="display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" id="eDone" ${i.done?"checked":""}> 완료</label>
+    <div class="acts"><div class="left">${placed?`<button class="btn" type="button" id="eBack">idea로 되돌리기</button>`:""}<button class="btn danger" type="button" id="eDel">삭제</button></div>
+    <button class="btn" value="cancel">취소</button><button class="btn primary" type="button" id="eSave">저장</button></div>`;
+  const dlg=$("dlgItem");
+  $("eSave").onclick=()=>{
+    const name=$("eName").value.trim(); if(!name){$("eName").focus();return}
+    const dur=$("eDur").value?+$("eDur").value:null, date=$("eDate").value||null, sv=$("eStart").value, start=(date&&sv!=="")?+sv:null;
+    if(start!=null){
+      if(!dur){toast("시간표에 놓으려면 소요시간을 정해주세요");$("eDur").focus();return}
+      const bad=checkSlot(i,date,start,dur); if(bad){toast("놓을 수 없어요: "+bad);return}
     }
-    out.push({id,name,due,labels});
-  }
-  return out;
-}
-function catOf(labels){
-  for(const l of labels){const k=l.toLowerCase();if(CATS.includes(k))return k;}
-  return "";
-}
-function renderTasks(tasks){
-  const el=$("#taskList"),sel=$("#sActive");
-  if(!tasks.length){el.innerHTML='<span class="empty">열린 할 일이 없어요.</span>';sel.innerHTML='<option value="">— 열린 할 일 없음 —</option>';return;}
-  el.innerHTML=tasks.map(t=>{
-    const cat=catOf(t.labels),meta=[];
-    if(t.due)meta.push(esc(t.due));
-    if(t.labels.length)meta.push(esc(t.labels.join(", ")));
-    return `<div class="idea${cat?" cat-"+cat:""}"><span class="nm">${esc(t.name)}</span>${meta.length?`<span class="mt">${meta.map(x=>`<span>${x}</span>`).join("")}</span>`:""}</div>`;
-  }).join("");
-  sel.innerHTML=tasks.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}${t.due?" ("+esc(t.due)+")":""}</option>`).join("");
+    Object.assign(i,{name,cat:$("eCat").value,dur,date,start,deadline:$("eDl").value||null,done:$("eDone").checked});
+    dlg.close();save();render();
+  };
+  if(placed)$("eBack").onclick=()=>{i.start=null;dlg.close();save();render();toast(`${md(i.date)} 날짜 칸으로 옮겼어요`)};
+  let armed=false;
+  $("eDel").onclick=e=>{if(!armed){armed=true;e.target.textContent="한 번 더 누르면 삭제";return}S.items=S.items.filter(x=>x!==i);dlg.close();save();render()};
+  dlg.showModal();
 }
 
-async function doList(){
-  const b=$("#btnList");b.disabled=true;show($("#resList"),"불러오는 중…");
-  try{
-    const d=await postJSON("/api/list_active_tasks");
-    if(!d.ok){show($("#resList"),d.error||"오류","err");return;}
-    renderTasks(parseTasks(d.text));
-    show($("#resList"),d.text,"ok");
-  }catch(e){show($("#resList"),"서버에 연결하지 못했어요.","err");}
-  finally{b.disabled=false;}
+/* ---------- fixed schedule ---------- */
+function openFixed(){
+  const f=$("formFixed");
+  const list=[...S.fixed].sort((a,b)=>Math.min(...a.dows)-Math.min(...b.dows)||a.start-b.start);
+  f.innerHTML=`<h3>고정 스케줄</h3><p class="sub">${esc(S.settings.semName)} 개강일부터 종강일까지 매주 반복되고, 공휴일에는 표시되지 않아요.</p>
+    <div class="fx-list">${list.map(x=>`<div class="fx-item"><span class="k ${x.kind}"></span><span>${esc(x.name)}</span><span class="t">${x.dows.map(d=>WD[d]).join("·")} ${hm(x.start)}–${hm(x.end)}</span><button type="button" class="x" data-delfx="${x.id}" aria-label="${esc(x.name)} 삭제">×</button></div>`).join("")||`<span class="empty">아직 없어요. 아래에서 수업이나 근무 시간을 추가하세요.</span>`}</div>
+    <hr class="sep">
+    <div class="field"><label for="fName">이름</label><input id="fName" placeholder="예: 경제원론 (대강당 101)"></div>
+    <div class="field"><span>요일</span><div class="dows">${WD.map((w,k)=>`<label><input type="checkbox" value="${k}" name="fDow">${w}</label>`).join("")}</div></div>
+    <div class="row2"><div class="field"><label for="fS">시작</label><input id="fS" type="time" step="300" value="09:00"></div><div class="field"><label for="fE">종료</label><input id="fE" type="time" step="300" value="10:15"></div></div>
+    <div class="kinds">
+      <label><input type="radio" name="fKind" value="solid" checked hidden><span class="demo solid"></span><span>배치 불가<small>수업처럼 task를 넣을 수 없는 시간</small></span></label>
+      <label><input type="radio" name="fKind" value="open" hidden><span class="demo open"></span><span>배치 가능<small>공강·근무처럼 안에 task를 넣는 시간</small></span></label>
+    </div>
+    <div class="acts"><button class="btn" value="cancel">닫기</button><button class="btn primary" type="button" id="fAdd">추가</button></div>`;
+  f.querySelectorAll("[data-delfx]").forEach(b=>b.onclick=()=>{S.fixed=S.fixed.filter(x=>x.id!==b.dataset.delfx);save();render();openFixedRefresh()});
+  $("fAdd").onclick=()=>{
+    const name=$("fName").value.trim(),dows=[...f.querySelectorAll("[name=fDow]:checked")].map(x=>+x.value),s=toMin($("fS").value||"0:0"),e=toMin($("fE").value||"0:0");
+    if(!name){$("fName").focus();toast("이름을 적어주세요");return}
+    if(!dows.length){toast("요일을 하나 이상 골라주세요");return}
+    if(e<=s){toast("종료 시간이 시작보다 늦어야 해요");return}
+    S.fixed.push({id:uid(),name,dows,start:s,end:e,kind:f.querySelector("[name=fKind]:checked").value});
+    save();render();openFixedRefresh();toast("추가했어요");
+  };
+}
+function openFixedRefresh(){openFixed()}
+
+/* ---------- settings ---------- */
+function openSettings(){
+  const st=S.settings,f=$("formSet");
+  const hopt=(a,b,sel)=>{let o="";for(let h=a;h<=b;h++)o+=`<option value="${h}"${h===sel?" selected":""}>${pad(h)}:00</option>`;return o};
+  f.innerHTML=`<h3>설정</h3>
+    <div class="row2"><div class="field"><label for="sH0">시간표 시작</label><select id="sH0">${hopt(0,23,st.startHour)}</select></div><div class="field"><label for="sH1">시간표 끝</label><select id="sH1">${hopt(1,24,st.endHour)}</select></div></div>
+    <div class="field"><label for="sName">학기 이름</label><input id="sName" value="${esc(st.semName)}"></div>
+    <div class="row2"><div class="field"><label for="sS">개강일</label><input id="sS" type="date" value="${st.semStart}"></div><div class="field"><label for="sE">종강일</label><input id="sE" type="date" value="${st.semEnd}"></div></div>
+    <div class="field"><label for="sHol">공휴일 (한 줄에 하나: 날짜 이름)</label><textarea id="sHol">${esc(st.holidays)}</textarea></div>
+    <div class="acts"><div class="left"><button class="btn danger" type="button" id="sReset">전체 초기화</button></div><button class="btn" value="cancel">취소</button><button class="btn primary" type="button" id="sSave">저장</button></div>`;
+  $("sSave").onclick=()=>{
+    const h0=+$("sH0").value,h1=+$("sH1").value; if(h1<=h0){toast("끝 시간이 시작보다 늦어야 해요");return}
+    const s=$("sS").value,e=$("sE").value; if(!s||!e||e<s){toast("개강일과 종강일을 확인해주세요");return}
+    Object.assign(st,{startHour:h0,endHour:h1,semName:$("sName").value.trim()||st.semName,semStart:s,semEnd:e,holidays:$("sHol").value});
+    $("dlgSet").close();save();render();
+  };
+  let armed=false;
+  $("sReset").onclick=e=>{if(!armed){armed=true;e.target.textContent="한 번 더 누르면 모두 지워져요";return}
+    S={v:1,settings:Object.assign({},st),fixed:[],items:[],example:false};$("dlgSet").close();save();render();toast("모두 지웠어요")};
+  $("dlgSet").showModal();
 }
 
-async function doAdd(){
-  const name=$("#cName").value.trim();
-  if(!name){show($("#resAdd"),"이름을 입력하세요.","err");$("#cName").focus();return;}
-  const date=$("#cDate").value,time=$("#cTime").value;
-  const body={content:name};
-  if(time){
-    if(!date){show($("#resAdd"),"시간을 정하려면 날짜도 필요해요.","err");$("#cDate").focus();return;}
-    body.due_datetime=`${date}T${time}:00`;
-  }else if(date){
-    body.due_date=date;
-  }
-  const label=$("#cLabel").value;
-  if(label)body.labels=[label];
-  const b=$("#btnAdd");b.disabled=true;show($("#resAdd"),"추가하는 중…");
-  try{
-    const d=await postJSON("/api/create_task",body);
-    if(!d.ok){show($("#resAdd"),d.error||"오류","err");return;}
-    show($("#resAdd"),d.text,"ok");
-    $("#cName").value="";$("#cDate").value="";$("#cTime").value="";$("#cLabel").value="";
-    doList();
-  }catch(e){show($("#resAdd"),"서버에 연결하지 못했어요.","err");}
-  finally{b.disabled=false;}
-}
-
-async function doComplete(){
-  const id=$("#sActive").value;
-  if(!id){show($("#resStatus"),"완료할 할 일을 선택하세요.","err");return;}
-  const b=$("#btnDone");b.disabled=true;show($("#resStatus"),"완료 처리 중…");
-  try{
-    const d=await postJSON("/api/set_task_status",{task_id:id,done:true});
-    if(!d.ok){show($("#resStatus"),d.error||"오류","err");return;}
-    show($("#resStatus"),d.text,"ok");
-    doList();doLoadCompleted();
-  }catch(e){show($("#resStatus"),"서버에 연결하지 못했어요.","err");}
-  finally{b.disabled=false;}
-}
-
-async function doReopen(){
-  const id=$("#sDone").value;
-  if(!id){show($("#resStatus"),'되돌릴 할 일을 선택하세요. (먼저 "완료한 일 불러오기")',"err");return;}
-  const b=$("#btnReopen");b.disabled=true;show($("#resStatus"),"되돌리는 중…");
-  try{
-    const d=await postJSON("/api/set_task_status",{task_id:id,done:false});
-    if(!d.ok){show($("#resStatus"),d.error||"오류","err");return;}
-    show($("#resStatus"),d.text,"ok");
-    doList();doLoadCompleted();
-  }catch(e){show($("#resStatus"),"서버에 연결하지 못했어요.","err");}
-  finally{b.disabled=false;}
-}
-
-$("#btnList").onclick=doList;
-$("#btnAdd").onclick=doAdd;
-$("#btnDone").onclick=doComplete;
-$("#btnLoadDone").onclick=doLoadCompleted;
-$("#btnReopen").onclick=doReopen;
-$("#cName").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.isComposing){e.preventDefault();doAdd();}});
+/* ---------- wiring ---------- */
+$("prevW").onclick=()=>{weekStart=addDays(weekStart,-7);render()};
+$("nextW").onclick=()=>{weekStart=addDays(weekStart,7);render()};
+$("todayW").onclick=()=>{weekStart=mondayOf(todayStr());render()};
+$("openFixed").onclick=()=>{openFixed();$("dlgFixed").showModal()};
+$("openSettings").onclick=openSettings;
+$("fab").onclick=openAdd;
+$("viewToggle").addEventListener("click",e=>{const b=e.target.closest("[data-view]");if(!b)return;S.settings.dumpView=b.dataset.view;save();render()});
+$("clearEx").onclick=()=>{S.fixed=S.fixed.filter(x=>!x.example);S.items=S.items.filter(x=>!x.example);S.example=false;save();render();toast("예시를 지웠어요")};
+document.addEventListener("keydown",e=>{if(e.target.closest&&e.target.closest("input,textarea,select,dialog"))return;if(e.key==="ArrowLeft")$("prevW").click();if(e.key==="ArrowRight")$("nextW").click()});
+setInterval(()=>{if(!document.querySelector("dialog[open]")&&!drag)render()},60000);
+render();
+})();
 </script>
 </body>
 </html>
