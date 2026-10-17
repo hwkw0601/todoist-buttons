@@ -461,7 +461,14 @@ document.addEventListener("click",e=>{
   const fx=e.target.closest("[data-fx]");
   if(fx&&!e.target.closest("dialog")){const f=S.fixed.find(x=>x.id===fx.dataset.fx);const dt=fx.dataset.fxdate;if(f){(f.skip=f.skip||[]).push(dt);save();render();undoToast(`'${f.name}' ${md(dt)}만 숨김`,()=>{f.skip=(f.skip||[]).filter(x=>x!==dt);save();render();});}return}
   const it=e.target.closest("[data-item]");
-  if(it&&!e.target.closest("dialog"))openItem(it.dataset.item);
+  if(it&&!e.target.closest("dialog")){openItem(it.dataset.item);return}
+  if(e.target.closest("dialog"))return;
+  const zone=e.target.closest("[data-zone]");
+  if(zone&&!e.target.closest("input,button,select,textarea,.quick")){
+    if(zone.dataset.zone==="dump")quickAddAt({cat:zone.dataset.cat});
+    else if(zone.dataset.zone==="day")quickAddAt({date:zone.dataset.date});
+    else if(zone.dataset.zone==="grid")quickAddAt({date:zone.dataset.date,start:slotFromClick(zone,e)});
+  }
 });
 
 /* ---------- drag & drop ---------- */
@@ -478,6 +485,12 @@ function clearOver(){document.querySelectorAll(".over").forEach(x=>x.classList.r
 function slotFromEvent(col,e){
   const st=S.settings,rh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--rowh"))||22;
   const r=col.getBoundingClientRect(),yy=e.clientY-r.top-drag.grab;
+  let s=st.startHour*60+Math.round(yy/rh)*30;
+  return Math.max(st.startHour*60,Math.min(s,st.endHour*60-30));
+}
+function slotFromClick(col,e){
+  const st=S.settings,rh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--rowh"))||22;
+  const r=col.getBoundingClientRect(),yy=e.clientY-r.top;
   let s=st.startHour*60+Math.round(yy/rh)*30;
   return Math.max(st.startHour*60,Math.min(s,st.endHour*60-30));
 }
@@ -554,6 +567,30 @@ function openAdd(){
     if(keepOpen){$("aName").value="";$("aName").focus()}else{$("dlgAdd").close()}};
   $("aAdd").onclick=()=>add(false);
   $("aName").onkeydown=e=>{if(e.key==="Enter"&&!e.isComposing){e.preventDefault();add(e.shiftKey)}};
+  $("dlgAdd").showModal();$("aName").focus();
+}
+function quickAddAt(opts){
+  opts=opts||{};
+  const timed=opts.start!=null;
+  const f=$("formAdd");
+  const title=timed?`${md(opts.date)} ${hm(opts.start)}에 추가`:(opts.date?`${md(opts.date)}에 추가`:"아이디어 추가");
+  const sub=timed?"시간표에 바로 배치돼요.":(opts.date?"그 날짜 칸에 추가돼요.":"Idea Dump로 들어가요.");
+  f.innerHTML=`<h3>${title}</h3><p class="sub">${sub}</p>
+    <div class="field"><label for="aName">이름</label><input id="aName" placeholder="할 일 이름" autocomplete="off"></div>
+    <div class="field"><span>카테고리</span><div class="catpick" id="aCat">${CATS.map((c,k)=>`<button type="button" class="cat-${c.id}${(opts.cat?c.id===opts.cat:k===0)?" on":""}" data-cat="${c.id}"><span class="sw"></span>${c.name}</button>`).join("")}</div></div>
+    ${timed?`<div class="field"><label for="aDur">소요시간</label><select id="aDur">${[30,60,90,120,150,180,240].map(m=>`<option value="${m}"${m===60?" selected":""}>${durTxt(m)}</option>`).join("")}</select></div>`:""}
+    <div class="acts"><button class="btn" value="cancel">닫기</button><button class="btn primary" type="button" id="aAdd">추가</button></div>`;
+  let cat=opts.cat||CATS[0].id;
+  f.querySelectorAll("#aCat button").forEach(b=>b.onclick=()=>{cat=b.dataset.cat;f.querySelectorAll("#aCat button").forEach(x=>x.classList.toggle("on",x===b))});
+  const add=()=>{const name=$("aName").value.trim();if(!name){$("aName").focus();return}
+    const dur=timed?(+$("aDur").value||60):null;
+    if(timed){const bad=checkSlot({id:null},opts.date,opts.start,dur);if(bad){toast("놓을 수 없어요: "+bad);return}}
+    const it={id:uid(),todoistId:null,name,cat,dur,deadline:null,date:opts.date||null,start:timed?opts.start:null,done:false,example:false};
+    S.items.push(it);save();render();$("dlgAdd").close();
+    if(it.date)pushSync(it);
+  };
+  $("aAdd").onclick=add;
+  $("aName").onkeydown=e=>{if(e.key==="Enter"&&!e.isComposing){e.preventDefault();add()}};
   $("dlgAdd").showModal();$("aName").focus();
 }
 
