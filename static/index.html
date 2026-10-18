@@ -270,6 +270,7 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:2px 0}
 <dialog id="dlgDur"><form class="dlg" id="formDur" method="dialog"></form></dialog>
 <dialog id="dlgFixed"><form class="dlg" id="formFixed" method="dialog"></form></dialog>
 <dialog id="dlgSet"><form class="dlg" id="formSet" method="dialog"></form></dialog>
+<dialog id="dlgConfirm"><form class="dlg" id="formConfirm" method="dialog"></form></dialog>
 
 <script>
 (function(){
@@ -376,6 +377,14 @@ function fixedOverlap(cand,excludeId){
 let toastT;
 function toast(msg){let t=document.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";t.setAttribute("role","status");document.body.appendChild(t)}t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
 function undoToast(msg,cb){let t=document.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";t.setAttribute("role","status");document.body.appendChild(t)}t.innerHTML="";const s=document.createElement("span");s.textContent=msg;const b=document.createElement("button");b.className="toast-undo";b.textContent="되돌리기";b.onclick=()=>{t.hidden=true;clearTimeout(toastT);cb()};t.appendChild(s);t.appendChild(b);t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,5000)}
+function confirmDialog(msg,onYes){
+  const f=document.getElementById("formConfirm");
+  f.innerHTML=`<h3>삭제 확인</h3><p class="sub">${esc(msg)}</p>
+    <div class="acts"><button class="btn" value="cancel">취소</button><button class="btn danger" type="button" id="cfYes">삭제</button></div>`;
+  const dlg=document.getElementById("dlgConfirm");
+  document.getElementById("cfYes").onclick=()=>{dlg.close();onYes();};
+  dlg.showModal();
+}
 
 /* ---------- render ---------- */
 const $=id=>document.getElementById(id);
@@ -384,7 +393,7 @@ function ideaHTML(i,showDate){
   if(i.dur)meta.push(durTxt(i.dur));
   if(i.deadline)meta.push(`<span class="dd ${d.urgent&&!i.done?"urgent":""}">${md(i.deadline)} ${d.txt}</span>`);
   return `<div class="idea cat-${i.cat}${i.done?" done":""}" draggable="true" data-item="${i.id}" tabindex="0" title="클릭해서 편집">
-    <div class="itop"><span class="nm">${esc(i.name)}</span><span class="cbadge">${esc(CATNAME[i.cat]||"")}</span></div>${meta.length?`<span class="mt">${meta.join("")}</span>`:""}</div>`;
+    <span class="nm">${esc(i.name)}</span>${meta.length?`<span class="mt">${meta.join("")}</span>`:""}</div>`;
 }
 function render(){
   const st=S.settings,today=todayStr();
@@ -461,7 +470,7 @@ document.addEventListener("click",e=>{
   const c=e.target.closest("[data-done]");
   if(c){e.stopPropagation();const i=byId(c.dataset.done);if(i){i.done=c.checked;save();render();pushStatus(i)}return}
   const fx=e.target.closest("[data-fx]");
-  if(fx&&!e.target.closest("dialog")){const f=S.fixed.find(x=>x.id===fx.dataset.fx);const dt=fx.dataset.fxdate;if(f&&confirm(`'${f.name}' — ${md(dt)} 이 날짜만 삭제할까요?`)){(f.skip=f.skip||[]).push(dt);save();render();undoToast(`'${f.name}' ${md(dt)}만 숨김`,()=>{f.skip=(f.skip||[]).filter(x=>x!==dt);save();render();});}return}
+  if(fx&&!e.target.closest("dialog")){const f=S.fixed.find(x=>x.id===fx.dataset.fx);const dt=fx.dataset.fxdate;if(f){confirmDialog(`'${f.name}' — ${md(dt)} 이 날짜만 삭제할까요?`,()=>{(f.skip=f.skip||[]).push(dt);save();render();undoToast(`'${f.name}' ${md(dt)}만 숨김`,()=>{f.skip=(f.skip||[]).filter(x=>x!==dt);save();render();});});}return}
   const it=e.target.closest("[data-item]");
   if(it&&!e.target.closest("dialog")){openItem(it.dataset.item);return}
   if(e.target.closest("dialog"))return;
