@@ -1,149 +1,155 @@
-# 주간 플래너 (Todoist 연동)
+# Weekly Planner (Todoist-synced)
 
-Todoist와 **양방향으로 동기화되는 로컬 주간 시간표 플래너**예요. 할 일을 드래그로 시간표에
-배치하고, 완료 체크·반복 일정·고정 수업표까지 관리할 수 있어요. 모든 Todoist 작업은 로컬에서
-실행되는 MCP 서버를 통해서만 이뤄지고, **API 토큰은 내 컴퓨터 밖으로 나가지 않아요.**
+A **local weekly timetable planner that syncs two-way with Todoist**. Drag tasks onto the timetable,
+check them off, and manage recurring tasks and a fixed class/work schedule. Every Todoist operation
+goes through a locally-run MCP server, so **your API token never leaves your computer.**
 
-> UI는 헤더의 **EN / 한국어** 버튼으로 전환할 수 있어요 (English / Korean).
+> Switch the UI with the **EN / 한국어** button in the header (English / Korean).
 
 ---
 
-## 구조
+## How it fits together
 
 ```
-브라우저(플래너 UI)  →  로컬 백엔드(MCP 클라이언트)  →  Todoist MCP 서버(stdio)  →  Todoist
+Browser (planner UI)  →  Local backend (MCP client)  →  Todoist MCP server (stdio)  →  Todoist
 ```
 
-- 브라우저는 Todoist를 직접 부르지 않아요. 백엔드(HTTP)만 호출해요.
-- 백엔드는 Todoist를 **MCP 서버의 도구로만** 호출해요.
-- 토큰은 **MCP 서버 쪽 `.env`에만** 저장돼요.
+- The browser never calls Todoist directly — it only calls the backend (HTTP).
+- The backend reaches Todoist **only through the MCP server's tools.**
+- The token lives **only in the MCP server's `.env`.**
 
-두 개의 폴더(저장소)로 이뤄져 있어요:
+It's made of two folders (repos):
 
-| 폴더 | 역할 |
-|------|------|
-| `todoist-mcp` | Todoist API를 다루는 MCP 서버 (Python + FastMCP). 도구 6개 |
-| `todoist-buttons` | 플래너 웹앱 — 백엔드(MCP 클라이언트) + UI. 이 파일이 있는 폴더 |
+| Folder | Role |
+|--------|------|
+| `todoist-mcp` | The MCP server that talks to the Todoist API (Python + FastMCP). 6 tools |
+| `todoist-buttons` | The planner web app — backend (MCP client) + UI. The folder this file is in |
 
-MCP 서버 도구: `list_active_tasks`, `create_task`, `set_task_status`, `update_task`,
+MCP server tools: `list_active_tasks`, `create_task`, `set_task_status`, `update_task`,
 `list_completed_tasks`, `delete_task`.
 
 ---
 
-## 준비물
+## Requirements
 
 - **Python 3.11+**
-- **[uv](https://docs.astral.sh/uv/)** (Python 패키지/실행 도구)
-- **Todoist 계정** 과 **개인 API 토큰**
+- **[uv](https://docs.astral.sh/uv/)** (Python package/run tool)
+- A **Todoist account** and a **personal API token**
 
-### Todoist API 토큰 받기
-Todoist → **Settings → Integrations → Developer → "API token"** 에서 복사하세요.
+### Getting your Todoist API token
+In Todoist, go to **Settings → Integrations → Developer → "API token"** and copy it.
 
-> ⚠️ 개인 토큰은 **범위를 나눌 수 없어요.** 토큰 하나가 계정 전체에 대한 **읽기/쓰기/삭제**
-> 권한을 가져요. 아래 `.env` 파일(절대 커밋 금지)에만 넣고, 누구와도 공유하지 마세요.
+> ⚠️ A personal token **cannot be scoped.** A single token grants **read/write/delete** over your
+> entire account. Put it only in the `.env` file below (never commit it) and never share it.
 
 ---
 
-## 설치 & 실행
+## Install & run
 
-1. 두 폴더를 받습니다 (GitHub에서 clone 하거나 다운로드).
+1. Get both folders (clone from GitHub or download).
    ```
    todoist-mcp/
    todoist-buttons/
    ```
 
-2. **토큰 넣기** — `todoist-mcp` 안에서:
+2. **Add your token** — inside `todoist-mcp`:
    ```bash
    cp .env.example .env
-   # .env 를 열어 TODOIST_API_TOKEN=여기에_본인_토큰 붙여넣기
+   # open .env and paste: TODOIST_API_TOKEN=your_token_here
    ```
-   `.env` 는 git에 올라가지 않아요(`.gitignore`에 포함).
+   `.env` is git-ignored (never committed).
 
-3. **의존성 설치** — 두 폴더 각각에서:
+3. **Install dependencies** — in each folder:
    ```bash
    cd todoist-mcp && uv sync
    cd ../todoist-buttons && uv sync
    ```
 
-4. **경로 맞추기 (다른 컴퓨터면 필수)** — `todoist-buttons/app.py` 상단 두 줄을 본인 환경에
-   맞게 수정하세요:
+4. **Fix the paths (required on a different machine)** — edit the two lines at the top of
+   `todoist-buttons/app.py` to match your environment:
    ```python
-   UV = "/절대경로/uv"                      # `which uv` 결과
-   MCP_PROJECT = "/절대경로/todoist-mcp"      # todoist-mcp 폴더 절대경로
+   UV = "/absolute/path/to/uv"                 # result of `which uv`
+   MCP_PROJECT = "/absolute/path/to/todoist-mcp"  # absolute path of the todoist-mcp folder
    ```
 
-5. **실행** — `todoist-buttons` 안에서:
+5. **Run** — inside `todoist-buttons`:
    ```bash
    uv run app.py
    ```
 
-6. 브라우저에서 **http://127.0.0.1:8000** 를 여세요.
-   > 반드시 이 **주소**로 여세요. `index.html` 파일을 직접 더블클릭하면 Todoist 연동이
-   > 안 되고 저장소도 분리돼요(데이터가 섞여 보일 수 있어요). **항상 탭 하나에서만** 사용하세요.
+6. Open **http://127.0.0.1:8000** in your browser.
+   > Always open this **address**. Double-clicking `index.html` directly breaks the Todoist sync and
+   > uses a separate storage (your data can look mixed up). **Always use a single tab.**
 
-처음 열면 본인 Todoist의 열린 할 일이 자동으로 불러와집니다. 테스트로 할 일을 하나 만들어
-보고(아래 "할 일 추가"), 폰 Todoist에 뜨는지 확인해 보세요.
-
----
-
-## 주요 기능
-
-### 1. Idea Dump (상단)
-- 날짜 미정 할 일 모음. **마감일이 임박한 순**으로 정렬돼요(D-day).
-- **모아보기 / 카테고리별** 토글.
-- 빈 곳을 **클릭**하거나 오른쪽 아래 **+** 버튼으로 바로 추가.
-- 카드는 **색**으로 카테고리를 구분, **원형 체크박스**로 완료 처리.
-
-### 2. 주간 시간표 (가운데)
-- 월~일 한 주. 기본 08:00–24:00 (설정에서 조정).
-- **드래그**로 아이디어를 시간표에 올리면 task가 돼요. 겹치면 빨간색으로 거부돼요.
-- 빈 칸을 **클릭**하면 그 시간(30분 단위 스냅)으로 바로 추가 창이 떠요.
-- **고정 스케줄**(수업·근무)은 매주 반복되고, 공휴일/학기 밖에는 안 떠요.
-  - 회색 꽉 찬 블록 = **배치 불가**, 회색 점선 블록 = **배치 가능**(안에 task 놓기 가능).
-- task 블록: 이름·시간·소요시간·장소·마감(D-day). **완료하면** 외곽선 + 체크로 바뀌어요.
-
-### 3. 날짜별 Idea (시간표 아래, 같이 가로 스크롤)
-- 날짜는 정했지만 시간은 아직인 할 일. 시간표로 끌어올리면 task가 돼요.
-
-### 4. 할 일 추가 / 편집
-- 이름, 카테고리, 날짜, **소요시간(최대 12시간)**, 시작 시간(5분 단위), **마감일**, **장소**.
-- **일정** 체크 → 완료 체크박스가 없는 "이벤트"로 분류되고 **Todoist엔 안 올라가요**.
-- **매주 반복** 체크 → 매주 그 요일에 반복. **반복 종료일**도 지정 가능.
-
-### 5. 고정 스케줄
-- **고정 스케줄** 버튼에서 추가/수정. 겹치는 시간은 막아줘요.
-- 시간표의 고정 블록을 클릭하면 **그날만 삭제**(확인 팝업 → 되돌리기 토스트).
-
-### 6. Todoist 자동 동기화 (양방향)
-- 열림: 로딩 시 + **60초마다** 자동으로 불러와요(폰에서 한 변경도 반영). 상태칩 클릭 시 즉시.
-- 쓰기: 날짜를 주면 생성, 완료 체크 → 완료, 해제 → reopen, 날짜·시간 변경 → 업데이트,
-  삭제 → Todoist에서도 삭제.
-- **매주 반복** task는 Todoist에 **반복 일정**으로 생성돼요(`every monday at 15:30` 형태,
-  종료일은 `until <날짜>`).
-
-### 7. 설정 / 언어
-- **설정**: 시간표 시작/끝, 학기 이름·개강/종강일, 공휴일, 전체 초기화.
-- **EN / 한국어** 버튼으로 틀 전체를 전환(내가 입력한 항목 텍스트는 그대로).
+On first open, your active Todoist tasks load automatically. Try creating one task (see "Add a task"
+below) and check that it shows up in the Todoist mobile app.
 
 ---
 
-## 데이터 & 주의
+## Main features
 
-- 플래너의 배치·고정 스케줄·카테고리 등은 **브라우저 localStorage**에 저장돼요(서버 전송 없음).
-  Todoist는 **이름·마감(due)·라벨·완료 상태만** 담당해요(장소·마감일·요일배치는 플래너 전용).
-- localStorage는 **주소(origin)·브라우저별로 분리**돼요. 꼭 `http://127.0.0.1:8000` 한 탭에서만
-  작업하세요(여러 탭/파일 미리보기를 섞으면 덮어쓰기 혼란이 생길 수 있어요).
-- 반복 Todoist task는 완료하면 **다음 주로 넘어가며 계속 활성**으로 남아요(반복의 정상 동작).
+### 1. Idea Dump (top)
+- A pool of undated tasks, sorted by **closest deadline first** (D-day).
+- **All / by-category** toggle.
+- **Click** an empty spot, or the **+** button (bottom right), to add quickly.
+- Cards are color-coded by category, with a **round checkbox** to complete.
 
-## 보안
+### 2. Weekly timetable (center)
+- Mon–Sun for one week. Default 08:00–24:00 (adjustable in settings).
+- **Drag** an idea onto the timetable to turn it into a task. Overlaps are rejected (shown in red).
+- **Click** an empty slot to open quick-add preset to that time (snaps to 30 min).
+- **Fixed blocks** (classes/shifts) repeat every week and hide on holidays / outside the term.
+  - Solid grey block = **not placeable**; dashed grey block = **placeable** (you can drop a task inside).
+- Task block: name, time, duration, place, deadline (D-day). **When completed**, it switches to an
+  outline + check.
 
-- 토큰은 `todoist-mcp/.env`에만. 로그·화면·에러 메시지에 **절대 노출되지 않도록** 설계돼 있어요.
-- 생성/완료/삭제는 **실제 계정**을 바꿔요. 더 좁은 권한이 필요하면 개인 토큰 대신 OAuth 스코프
-  (`data:read`, `task:add` 등)를 써야 하는데, 이 앱은 개인 토큰을 전제로 해요.
+### 3. Per-date ideas (below the timetable, scrolls together with it)
+- Tasks that have a date but no time yet. Drag one up into the timetable to turn it into a task.
 
-## 문제 해결
+### 4. Add / edit a task
+- Name, category, date, **duration (up to 12 hours)**, start time (5-min steps), **deadline**, **place**.
+- **Event** checkbox → classified as an "event" with no completion checkbox, and **not pushed to Todoist**.
+- **Weekly repeat** checkbox → repeats on that weekday every week. You can also set a **repeat end date**.
 
-- **화면이 이상하거나 옛날처럼 보여요** → 강력 새로고침(⌘/Ctrl + Shift + R).
-- **Todoist 동기화 실패** → `.env`의 토큰 확인, `todoist-mcp`에서 `uv sync` 했는지 확인.
-- **`uv: command not found`** → `app.py`의 `UV` 경로를 `which uv` 결과로 수정.
-- **백엔드가 안 떠요** → `app.py`의 `MCP_PROJECT` 경로가 맞는지 확인.
+### 5. Fixed schedule
+- Add/edit from the **Fixed schedule** button. Overlapping times are blocked.
+- Click a fixed block in the timetable to **delete just that day** (confirm popup → undo toast).
+
+### 6. Todoist auto-sync (two-way)
+- Reads: on load + automatically **every 60 seconds** (so changes made on your phone show up). Click
+  the status chip for an immediate refresh.
+- Writes: giving a date creates it; checking complete → close; unchecking → reopen; changing
+  date/time → update; deleting → delete in Todoist too.
+- **Weekly-repeat** tasks are created in Todoist as **recurring** tasks (like `every monday at 15:30`,
+  with `until <date>` for an end date).
+
+### 7. Settings / language
+- **Settings**: timetable start/end, term name and start/end dates, holidays, reset everything.
+- **EN / 한국어** button switches the whole UI (the text of items you entered stays as-is).
+
+---
+
+## Data & caveats
+
+- Planner-only data (placements, fixed schedule, categories, etc.) is stored in **browser
+  localStorage** — never sent to a server. Todoist only holds **name, due, labels, and completion
+  status** (place, deadline, and weekday placement are planner-only).
+- localStorage is **separate per address (origin) and per browser.** Always work in a single tab at
+  `http://127.0.0.1:8000` (mixing tabs / a file preview can cause confusing overwrites).
+- A recurring Todoist task, once completed, **rolls over to the next week and stays active** (normal
+  recurring behavior).
+
+## Security
+
+- The token lives only in `todoist-mcp/.env`. By design it is **never exposed** in logs, the screen,
+  or error messages.
+- Create/complete/delete change your **live account**. If you need narrower access, you'd have to use
+  OAuth scopes (`data:read`, `task:add`, etc.) instead of a personal token — but this app assumes a
+  personal token.
+
+## Troubleshooting
+
+- **UI looks broken or stale** → hard refresh (⌘/Ctrl + Shift + R).
+- **Todoist sync fails** → check the token in `.env`, and that you ran `uv sync` in `todoist-mcp`.
+- **`uv: command not found`** → set `UV` in `app.py` to the result of `which uv`.
+- **Backend won't start** → check that `MCP_PROJECT` in `app.py` is the correct path.
