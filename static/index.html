@@ -292,9 +292,9 @@ const DURS=[30,60,90,120,150,180,210,240,300,360,420,480,540,600,660,720];
 let LANG="ko";
 const I18N={
   ko:{brand:"주간 플래너",today:"오늘",fixed:"고정 스케줄",settings:"설정",clearEx:"예시 지우기",exBanner:"지금 보이는 수업·아이디어는 <b>예시</b>예요. 고정 스케줄에 실제 시간표를 넣고 예시는 지워주세요.",dumpHint:"날짜 미정 · 끌어다 시간표나 날짜 칸에 놓으세요",viewFree:"모아보기",viewGrouped:"카테고리별",ttHint:"회색 면 = 배치 불가 · 점선 = 안에 task 배치 가능 · 아래 = 날짜별 Idea (날짜만 정한 할 일)",datedIdea:"날짜별 Idea",langBtn:"EN",
-    name:"이름",category:"카테고리",date:"날짜",dur:"소요시간",deadline:"마감일",place:"장소",startT:"시작 시간",start:"시작",end:"종료",done:"완료",event:"일정",repeat:"매주 반복",repeatUntil:"반복 종료일",opt:" (선택)",undecided:"미정",close:"닫기",add:"추가",save:"저장",cancel:"취소",del:"삭제",backToIdea:"idea로 되돌리기",empty:"비어 있음",noIdeas:"아이디어가 없어요. 오른쪽 아래 + 버튼으로 추가하세요.",ideaLead:"idea",taskEdit:"편집",nameph:"이름",placeDoc:"예: 중앙도서관",placeRoom:"예: 대강당 101",shiftEnter:"Shift+Enter로 연달아 추가할 수 있어요.",outTerm:"기간 외",wk:n=>n+"주차",deleteConfirm:"삭제 확인",term:"학기"},
+    name:"이름",category:"카테고리",date:"날짜",dur:"소요시간",deadline:"마감일",place:"장소",startT:"시작 시간",start:"시작",end:"종료",done:"완료",event:"일정",repeat:"매주 반복",repeatUntil:"반복 종료일",opt:" (선택)",undecided:"미정",close:"닫기",add:"추가",save:"저장",cancel:"취소",del:"삭제",backToIdea:"idea로 되돌리기",empty:"비어 있음",noIdeas:"아이디어가 없어요. 오른쪽 아래 + 버튼으로 추가하세요.",ideaLead:"idea",taskEdit:"편집",nameph:"이름",placeDoc:"예: 중앙도서관",placeRoom:"예: 대강당 101",shiftEnter:"Shift+Enter로 연달아 추가할 수 있어요.",outTerm:"기간 외",wk:n=>n+"주차",deleteConfirm:"삭제 확인",term:"학기",durQ:"소요시간이 얼마나 걸릴까요?",durCustom:"직접 입력 (분, 30분 단위)",durEg:"예: 150",placeBtn:"배치하기",cantPlace:"놓을 수 없어요: ",addedDump:"Idea Dump에 추가했어요",needDur:"시간표에 놓으려면 소요시간을 정해주세요",movedTo:d=>`${d} 날짜 칸으로 옮겼어요`,armedDel:"한 번 더 누르면 삭제",needName:"이름을 적어주세요",needDow:"요일을 하나 이상 골라주세요",endAfterStart:"종료 시간이 시작보다 늦어야 해요",overlap:n=>`'${n}'과(와) 시간이 겹쳐요`,saved:"저장했어요",checkTerm:"개강일과 종강일을 확인해주세요",armedReset:"한 번 더 누르면 모두 지워져요",cleared:"모두 지웠어요",clearedEx:"예시를 지웠어요",fixedHint:"개강일부터 종강일까지 매주 반복되고, 공휴일에는 표시되지 않아요. 항목을 누르면 수정할 수 있어요.",hiddenOn:"숨긴 날",noFixed:"아직 없어요. 아래에서 수업이나 근무 시간을 추가하세요.",editingLbl:"수정 중",dow:"요일",blockSolid:"배치 불가",blockSolidSub:"수업처럼 task를 넣을 수 없는 시간",blockOpen:"배치 가능",blockOpenSub:"공강·근무처럼 안에 task를 넣는 시간",cancelEdit:"수정 취소",ttStart:"시간표 시작",ttEnd:"시간표 끝",termName:"학기 이름",termStartL:"개강일",termEndL:"종강일",holidaysL:"공휴일 (한 줄에 하나: 날짜 이름)",resetAll:"전체 초기화",localMode:"로컬 모드",syncing:"동기화 중…",synced:x=>`동기화됨 ${x}`,syncFail:"동기화 실패 — 로컬 유지",addingT:"Todoist에 추가 중…",addFail:"추가 실패 — 로컬 유지",updatingT:"Todoist 업데이트 중…",updateFail:"업데이트 실패 — 로컬 유지",completingT:"완료 반영 중…",reopeningT:"되돌리는 중…",statusFail:"반영 실패 — 로컬 유지",deletingT:"Todoist에서 삭제 중…",deleteFail:"삭제 실패 — 로컬만 삭제",delThisDay:(n,d)=>`'${n}' — ${d} 이 날짜만 삭제할까요?`,hidThisDay:(n,d)=>`'${n}' ${d}만 숨김`,restore:"되돌리기"},
   en:{brand:"Weekly Planner",today:"Today",fixed:"Fixed schedule",settings:"Settings",clearEx:"Clear examples",exBanner:"The classes/ideas shown are <b>examples</b>. Add your real schedule under Fixed schedule and clear them.",dumpHint:"No date yet · drag onto the timetable or a date cell",viewFree:"All",viewGrouped:"By category",ttHint:"Grey = can't place · dashed = task-placeable · below = dated ideas",datedIdea:"Dated ideas",langBtn:"한국어",
-    name:"Name",category:"Category",date:"Date",dur:"Duration",deadline:"Deadline",place:"Place",startT:"Start time",start:"Start",end:"End",done:"Done",event:"Event",repeat:"Weekly repeat",repeatUntil:"Repeat until",opt:" (optional)",undecided:"None",close:"Close",add:"Add",save:"Save",cancel:"Cancel",del:"Delete",backToIdea:"Back to idea",empty:"Empty",noIdeas:"No ideas yet. Use the + button (bottom-right).",ideaLead:"idea",taskEdit:"Edit",nameph:"Name",placeDoc:"e.g. Central Library",placeRoom:"e.g. Main Hall 101",shiftEnter:"Shift+Enter to add several.",outTerm:"out of term",wk:n=>"Week "+n,deleteConfirm:"Confirm delete",term:"term"}
+    name:"Name",category:"Category",date:"Date",dur:"Duration",deadline:"Deadline",place:"Place",startT:"Start time",start:"Start",end:"End",done:"Done",event:"Event",repeat:"Weekly repeat",repeatUntil:"Repeat until",opt:" (optional)",undecided:"None",close:"Close",add:"Add",save:"Save",cancel:"Cancel",del:"Delete",backToIdea:"Back to idea",empty:"Empty",noIdeas:"No ideas yet. Use the + button (bottom-right).",ideaLead:"idea",taskEdit:"Edit",nameph:"Name",placeDoc:"e.g. Central Library",placeRoom:"e.g. Main Hall 101",shiftEnter:"Shift+Enter to add several.",outTerm:"out of term",wk:n=>"Week "+n,deleteConfirm:"Confirm delete",term:"term",durQ:"How long will it take?",durCustom:"Custom (minutes, 30-min steps)",durEg:"e.g. 150",placeBtn:"Place",cantPlace:"Can't place: ",addedDump:"Added to Idea Dump",needDur:"Set a duration to place it on the timetable",movedTo:d=>`Moved to the ${d} date cell`,armedDel:"Press again to delete",needName:"Please enter a name",needDow:"Pick at least one weekday",endAfterStart:"End must be later than start",overlap:n=>`Overlaps '${n}'`,saved:"Saved",checkTerm:"Check the term start and end dates",armedReset:"Press again to erase everything",cleared:"Erased everything",clearedEx:"Examples cleared",fixedHint:"Repeats weekly from term start to end, skipped on holidays. Click an item to edit it.",hiddenOn:"Hidden",noFixed:"None yet. Add a class or shift below.",editingLbl:"Editing",dow:"Days",blockSolid:"Can't place",blockSolidSub:"A class-like time where tasks can't go",blockOpen:"Placeable",blockOpenSub:"A free/work time where tasks can go",cancelEdit:"Cancel edit",ttStart:"Timetable start",ttEnd:"Timetable end",termName:"Term name",termStartL:"Term start",termEndL:"Term end",holidaysL:"Holidays (one per line: date name)",resetAll:"Reset all",localMode:"Local mode",syncing:"Syncing…",synced:x=>`Synced ${x}`,syncFail:"Sync failed — kept local",addingT:"Adding to Todoist…",addFail:"Add failed — kept local",updatingT:"Updating Todoist…",updateFail:"Update failed — kept local",completingT:"Completing…",reopeningT:"Reopening…",statusFail:"Update failed — kept local",deletingT:"Deleting from Todoist…",deleteFail:"Delete failed — local only",delThisDay:(n,d)=>`'${n}' — delete just ${d}?`,hidThisDay:(n,d)=>`'${n}' ${d} hidden`,restore:"Undo"}
 };
 function t(k){const v=I18N[LANG]&&I18N[LANG][k];return v!=null?v:(I18N.ko[k]!=null?I18N.ko[k]:k)}
 const LSKEY="weekly-planner-v1";
@@ -399,7 +399,7 @@ function itemOnDate(i,d){
 }
 let toastT;
 function toast(msg){let t=document.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";t.setAttribute("role","status");document.body.appendChild(t)}t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
-function undoToast(msg,cb){let t=document.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";t.setAttribute("role","status");document.body.appendChild(t)}t.innerHTML="";const s=document.createElement("span");s.textContent=msg;const b=document.createElement("button");b.className="toast-undo";b.textContent="되돌리기";b.onclick=()=>{t.hidden=true;clearTimeout(toastT);cb()};t.appendChild(s);t.appendChild(b);t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,5000)}
+function undoToast(msg,cb){let el=document.querySelector(".toast");if(!el){el=document.createElement("div");el.className="toast";el.setAttribute("role","status");document.body.appendChild(el)}el.innerHTML="";const s=document.createElement("span");s.textContent=msg;const b=document.createElement("button");b.className="toast-undo";b.textContent=t("restore");b.onclick=()=>{el.hidden=true;clearTimeout(toastT);cb()};el.appendChild(s);el.appendChild(b);el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,5000)}
 function confirmDialog(msg,onYes){
   const f=document.getElementById("formConfirm");
   f.innerHTML=`<h3>${t("deleteConfirm")}</h3><p class="sub">${esc(msg)}</p>
@@ -495,7 +495,7 @@ document.addEventListener("click",e=>{
   const c=e.target.closest("[data-done]");
   if(c){e.stopPropagation();const i=byId(c.dataset.done);if(i){i.done=c.checked;save();render();pushStatus(i)}return}
   const fx=e.target.closest("[data-fx]");
-  if(fx&&!e.target.closest("dialog")){const f=S.fixed.find(x=>x.id===fx.dataset.fx);const dt=fx.dataset.fxdate;if(f){confirmDialog(`'${f.name}' — ${md(dt)} 이 날짜만 삭제할까요?`,()=>{(f.skip=f.skip||[]).push(dt);save();render();undoToast(`'${f.name}' ${md(dt)}만 숨김`,()=>{f.skip=(f.skip||[]).filter(x=>x!==dt);save();render();});});}return}
+  if(fx&&!e.target.closest("dialog")){const f=S.fixed.find(x=>x.id===fx.dataset.fx);const dt=fx.dataset.fxdate;if(f){confirmDialog(t("delThisDay")(f.name,md(dt)),()=>{(f.skip=f.skip||[]).push(dt);save();render();undoToast(t("hidThisDay")(f.name,md(dt)),()=>{f.skip=(f.skip||[]).filter(x=>x!==dt);save();render();});});}return}
   const it=e.target.closest("[data-item]");
   if(it&&!e.target.closest("dialog")){openItem(it.dataset.item);return}
   if(e.target.closest("dialog"))return;
@@ -566,19 +566,19 @@ document.addEventListener("drop",e=>{
 });
 function placeOnGrid(item,date,start){
   if(!item)return;
-  if(!item.dur){askDuration(item,dur=>{const bad=checkSlot(item,date,start,dur);if(bad){toast("놓을 수 없어요: "+bad);return}item.dur=dur;item.date=date;item.start=start;save();render();pushSync(item)});return}
+  if(!item.dur){askDuration(item,dur=>{const bad=checkSlot(item,date,start,dur);if(bad){toast(t("cantPlace")+bad);return}item.dur=dur;item.date=date;item.start=start;save();render();pushSync(item)});return}
   const bad=checkSlot(item,date,start,item.dur);
-  if(bad){toast("놓을 수 없어요: "+bad);return}
+  if(bad){toast(t("cantPlace")+bad);return}
   item.date=date;item.start=start;save();render();pushSync(item);
 }
 
 /* ---------- duration dialog ---------- */
 function askDuration(item,cb){
   const f=$("formDur");
-  f.innerHTML=`<h3>소요시간이 얼마나 걸릴까요?</h3><p class="sub">${esc(item.name)}</p>
+  f.innerHTML=`<h3>${t("durQ")}</h3><p class="sub">${esc(item.name)}</p>
     <div class="chips">${[30,60,90,120,180,240,360,480,600,720].map(m=>`<button type="button" data-m="${m}">${durTxt(m)}</button>`).join("")}</div>
-    <div class="field"><label for="durCustom">직접 입력 (분, 30분 단위)</label><input id="durCustom" type="number" min="30" step="30" placeholder="예: 150"></div>
-    <div class="acts"><button class="btn" value="cancel">취소</button><button class="btn primary" type="button" id="durOk">배치하기</button></div>`;
+    <div class="field"><label for="durCustom">${t("durCustom")}</label><input id="durCustom" type="number" min="30" step="30" placeholder="${t("durEg")}"></div>
+    <div class="acts"><button class="btn" value="cancel">${t("cancel")}</button><button class="btn primary" type="button" id="durOk">${t("placeBtn")}</button></div>`;
   const dlg=$("dlgDur");
   const go=m=>{m=Math.max(30,Math.round(m/30)*30);dlg.close();cb(m)};
   f.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>go(+b.dataset.m));
@@ -634,7 +634,7 @@ function quickAddAt(opts){
     const start=(timed&&date)?((+$("aSH").value)*60+(+$("aSM").value)):null;
     const dur=$("aDur").value?+$("aDur").value:(start!=null?60:null);
     const isEvent=$("aEvent").checked, repeat=$("aRepeat").checked, repeatUntil=$("aUntil").value||null;
-    if(start!=null){const bad=checkSlot({id:null},date,start,dur||60);if(bad){toast("놓을 수 없어요: "+bad);return}}
+    if(start!=null){const bad=checkSlot({id:null},date,start,dur||60);if(bad){toast(t("cantPlace")+bad);return}}
     const it={id:uid(),todoistId:null,name,cat,dur,deadline:$("aDl").value||null,date,start,place:$("aPlace").value.trim()||null,isEvent,repeat,repeatUntil,done:false,example:false};
     S.items.push(it);save();render();
     if(it.date&&!isEvent)pushSync(it);
@@ -673,8 +673,8 @@ function openItem(id){
     const name=$("eName").value.trim(); if(!name){$("eName").focus();return}
     const dur=$("eDur").value?+$("eDur").value:null, date=$("eDate").value||null, sh=$("eStartH").value, start=(date&&sh!=="")?(+sh*60+(+$("eStartM").value||0)):null;
     if(start!=null){
-      if(!dur){toast("시간표에 놓으려면 소요시간을 정해주세요");$("eDur").focus();return}
-      const bad=checkSlot(i,date,start,dur); if(bad){toast("놓을 수 없어요: "+bad);return}
+      if(!dur){toast(t("needDur"));$("eDur").focus();return}
+      const bad=checkSlot(i,date,start,dur); if(bad){toast(t("cantPlace")+bad);return}
     }
     const prevDone=i.done;
     Object.assign(i,{name,cat:$("eCat").value,dur,date,start,deadline:$("eDl").value||null,place:$("ePlace").value.trim()||null,isEvent:$("eEvent").checked,repeat:$("eRepeat").checked,repeatUntil:$("eUntil").value||null,done:$("eDone").checked});
@@ -685,9 +685,9 @@ function openItem(id){
       else{await pushSync(i);if(i.todoistId&&i.done!==prevDone)await pushStatus(i);}
     })();
   };
-  if(placed)$("eBack").onclick=()=>{i.start=null;dlg.close();save();render();pushSync(i);toast(`${md(i.date)} 날짜 칸으로 옮겼어요`)};
+  if(placed)$("eBack").onclick=()=>{i.start=null;dlg.close();save();render();pushSync(i);toast(t("movedTo")(md(i.date)))};
   let armed=false;
-  $("eDel").onclick=e=>{if(!armed){armed=true;e.target.textContent="한 번 더 누르면 삭제";return}const tid=i.todoistId;S.items=S.items.filter(x=>x!==i);dlg.close();save();render();if(tid)pushDelete(tid)};
+  $("eDel").onclick=e=>{if(!armed){armed=true;e.target.textContent=t("armedDel");return}const tid=i.todoistId;S.items=S.items.filter(x=>x!==i);dlg.close();save();render();if(tid)pushDelete(tid)};
   dlg.showModal();
 }
 
@@ -697,32 +697,32 @@ function openFixed(){
   const f=$("formFixed");
   const editing=fixedEditId?S.fixed.find(x=>x.id===fixedEditId):null;
   const list=[...S.fixed].sort((a,b)=>Math.min(...a.dows)-Math.min(...b.dows)||a.start-b.start);
-  f.innerHTML=`<h3>고정 스케줄</h3><p class="sub">${esc(S.settings.semName)} 개강일부터 종강일까지 매주 반복되고, 공휴일에는 표시되지 않아요. 항목을 누르면 수정할 수 있어요.</p>
-    <div class="fx-list">${list.map(x=>`<div class="fx-item${x.id===fixedEditId?" editing":""}" data-editfx="${x.id}"><span class="k ${x.kind}"></span><span>${esc(x.name)}</span><span class="t">${x.dows.map(d=>WD[d]).join("·")} ${hm(x.start)}–${hm(x.end)}${x.place?` · ${esc(x.place)}`:""}</span><button type="button" class="x" data-delfx="${x.id}" aria-label="${esc(x.name)} 삭제">×</button></div>${(x.skip&&x.skip.length)?`<div class="fx-skips">숨긴 날: ${[...x.skip].sort().map(dt=>`<button type="button" class="fx-restore" data-restorefx="${x.id}" data-date="${dt}">${md(dt)} ↩</button>`).join("")}</div>`:""}`).join("")||`<span class="empty">아직 없어요. 아래에서 수업이나 근무 시간을 추가하세요.</span>`}</div>
+  f.innerHTML=`<h3>${t("fixed")}</h3><p class="sub">${esc(S.settings.semName)} ${t("fixedHint")}</p>
+    <div class="fx-list">${list.map(x=>`<div class="fx-item${x.id===fixedEditId?" editing":""}" data-editfx="${x.id}"><span class="k ${x.kind}"></span><span>${esc(x.name)}</span><span class="t">${x.dows.map(d=>WD[d]).join("·")} ${hm(x.start)}–${hm(x.end)}${x.place?` · ${esc(x.place)}`:""}</span><button type="button" class="x" data-delfx="${x.id}" aria-label="${esc(x.name)}">×</button></div>${(x.skip&&x.skip.length)?`<div class="fx-skips">${t("hiddenOn")}: ${[...x.skip].sort().map(dt=>`<button type="button" class="fx-restore" data-restorefx="${x.id}" data-date="${dt}">${md(dt)} ↩</button>`).join("")}</div>`:""}`).join("")||`<span class="empty">${t("noFixed")}</span>`}</div>
     <hr class="sep">
-    <div class="field"><label for="fName">${editing?`수정 중: ${esc(editing.name)}`:"이름"}</label><input id="fName" placeholder="예: 경제원론 (대강당 101)" value="${editing?esc(editing.name):""}"></div>
-    <div class="field"><span>요일</span><div class="dows">${WD.map((w,k)=>`<label><input type="checkbox" value="${k}" name="fDow"${editing&&editing.dows.includes(k)?" checked":""}>${w}</label>`).join("")}</div></div>
-    <div class="row2"><div class="field"><label>시작</label><div class="hm"><select id="fSH">${hourOpts(editing?Math.floor(editing.start/60):9,0,24)}</select><select id="fSM">${minOpts(editing?editing.start%60:0)}</select></div></div><div class="field"><label>종료</label><div class="hm"><select id="fEH">${hourOpts(editing?Math.floor(editing.end/60):10,0,24)}</select><select id="fEM">${minOpts(editing?editing.end%60:15)}</select></div></div></div>
-    <div class="field"><label for="fPlace">장소 (선택)</label><input id="fPlace" placeholder="예: 대강당 101" value="${editing?esc(editing.place||""):""}"></div>
+    <div class="field"><label for="fName">${editing?`${t("editingLbl")}: ${esc(editing.name)}`:t("name")}</label><input id="fName" placeholder="${t("nameph")}" value="${editing?esc(editing.name):""}"></div>
+    <div class="field"><span>${t("dow")}</span><div class="dows">${WD.map((w,k)=>`<label><input type="checkbox" value="${k}" name="fDow"${editing&&editing.dows.includes(k)?" checked":""}>${w}</label>`).join("")}</div></div>
+    <div class="row2"><div class="field"><label>${t("start")}</label><div class="hm"><select id="fSH">${hourOpts(editing?Math.floor(editing.start/60):9,0,24)}</select><select id="fSM">${minOpts(editing?editing.start%60:0)}</select></div></div><div class="field"><label>${t("end")}</label><div class="hm"><select id="fEH">${hourOpts(editing?Math.floor(editing.end/60):10,0,24)}</select><select id="fEM">${minOpts(editing?editing.end%60:15)}</select></div></div></div>
+    <div class="field"><label for="fPlace">${t("place")}${t("opt")}</label><input id="fPlace" placeholder="${t("placeRoom")}" value="${editing?esc(editing.place||""):""}"></div>
     <div class="kinds">
-      <label><input type="radio" name="fKind" value="solid"${!editing||editing.kind==="solid"?" checked":""} hidden><span class="demo solid"></span><span>배치 불가<small>수업처럼 task를 넣을 수 없는 시간</small></span></label>
-      <label><input type="radio" name="fKind" value="open"${editing&&editing.kind==="open"?" checked":""} hidden><span class="demo open"></span><span>배치 가능<small>공강·근무처럼 안에 task를 넣는 시간</small></span></label>
+      <label><input type="radio" name="fKind" value="solid"${!editing||editing.kind==="solid"?" checked":""} hidden><span class="demo solid"></span><span>${t("blockSolid")}<small>${t("blockSolidSub")}</small></span></label>
+      <label><input type="radio" name="fKind" value="open"${editing&&editing.kind==="open"?" checked":""} hidden><span class="demo open"></span><span>${t("blockOpen")}<small>${t("blockOpenSub")}</small></span></label>
     </div>
-    <div class="acts">${editing?`<div class="left"><button class="btn" type="button" id="fCancelEdit">수정 취소</button></div>`:""}<button class="btn" value="cancel">닫기</button><button class="btn primary" type="button" id="fAdd">${editing?"저장":"추가"}</button></div>`;
+    <div class="acts">${editing?`<div class="left"><button class="btn" type="button" id="fCancelEdit">${t("cancelEdit")}</button></div>`:""}<button class="btn" value="cancel">${t("close")}</button><button class="btn primary" type="button" id="fAdd">${editing?t("save"):t("add")}</button></div>`;
   f.querySelectorAll("[data-editfx]").forEach(row=>row.onclick=ev=>{if(ev.target.closest("[data-delfx]"))return;fixedEditId=row.dataset.editfx;openFixedRefresh()});
   f.querySelectorAll("[data-delfx]").forEach(b=>b.onclick=ev=>{ev.stopPropagation();S.fixed=S.fixed.filter(x=>x.id!==b.dataset.delfx);if(fixedEditId===b.dataset.delfx)fixedEditId=null;save();render();openFixedRefresh()});
   f.querySelectorAll("[data-restorefx]").forEach(b=>b.onclick=ev=>{ev.stopPropagation();const fo=S.fixed.find(x=>x.id===b.dataset.restorefx);if(fo&&fo.skip)fo.skip=fo.skip.filter(d=>d!==b.dataset.date);save();render();openFixedRefresh()});
   if(editing)$("fCancelEdit").onclick=()=>{fixedEditId=null;openFixedRefresh()};
   $("fAdd").onclick=()=>{
     const name=$("fName").value.trim(),dows=[...f.querySelectorAll("[name=fDow]:checked")].map(x=>+x.value),s=(+$("fSH").value)*60+(+$("fSM").value),e=(+$("fEH").value)*60+(+$("fEM").value),place=$("fPlace").value.trim();
-    if(!name){$("fName").focus();toast("이름을 적어주세요");return}
-    if(!dows.length){toast("요일을 하나 이상 골라주세요");return}
-    if(e<=s){toast("종료 시간이 시작보다 늦어야 해요");return}
+    if(!name){$("fName").focus();toast(t("needName"));return}
+    if(!dows.length){toast(t("needDow"));return}
+    if(e<=s){toast(t("endAfterStart"));return}
     const conflict=fixedOverlap({dows,start:s,end:e},fixedEditId);
-    if(conflict){toast(`'${conflict.name}'과(와) 시간이 겹쳐요`);return}
+    if(conflict){toast(t("overlap")(conflict.name));return}
     if(fixedEditId){const it=S.fixed.find(x=>x.id===fixedEditId);if(it){Object.assign(it,{name,dows,start:s,end:e,kind:f.querySelector("[name=fKind]:checked").value,place});delete it.example}fixedEditId=null;}
     else{S.fixed.push({id:uid(),name,dows,start:s,end:e,kind:f.querySelector("[name=fKind]:checked").value,place});}
-    save();render();openFixedRefresh();toast("저장했어요");
+    save();render();openFixedRefresh();toast(t("saved"));
   };
 }
 function openFixedRefresh(){openFixed()}
@@ -731,21 +731,21 @@ function openFixedRefresh(){openFixed()}
 function openSettings(){
   const st=S.settings,f=$("formSet");
   const hopt=(a,b,sel)=>{let o="";for(let h=a;h<=b;h++)o+=`<option value="${h}"${h===sel?" selected":""}>${pad(h)}:00</option>`;return o};
-  f.innerHTML=`<h3>설정</h3>
-    <div class="row2"><div class="field"><label for="sH0">시간표 시작</label><select id="sH0">${hopt(0,23,st.startHour)}</select></div><div class="field"><label for="sH1">시간표 끝</label><select id="sH1">${hopt(1,24,st.endHour)}</select></div></div>
-    <div class="field"><label for="sName">학기 이름</label><input id="sName" value="${esc(st.semName)}"></div>
-    <div class="row2"><div class="field"><label for="sS">개강일</label><input id="sS" type="date" value="${st.semStart}"></div><div class="field"><label for="sE">종강일</label><input id="sE" type="date" value="${st.semEnd}"></div></div>
-    <div class="field"><label for="sHol">공휴일 (한 줄에 하나: 날짜 이름)</label><textarea id="sHol">${esc(st.holidays)}</textarea></div>
-    <div class="acts"><div class="left"><button class="btn danger" type="button" id="sReset">전체 초기화</button></div><button class="btn" value="cancel">취소</button><button class="btn primary" type="button" id="sSave">저장</button></div>`;
+  f.innerHTML=`<h3>${t("settings")}</h3>
+    <div class="row2"><div class="field"><label for="sH0">${t("ttStart")}</label><select id="sH0">${hopt(0,23,st.startHour)}</select></div><div class="field"><label for="sH1">${t("ttEnd")}</label><select id="sH1">${hopt(1,24,st.endHour)}</select></div></div>
+    <div class="field"><label for="sName">${t("termName")}</label><input id="sName" value="${esc(st.semName)}"></div>
+    <div class="row2"><div class="field"><label for="sS">${t("termStartL")}</label><input id="sS" type="date" value="${st.semStart}"></div><div class="field"><label for="sE">${t("termEndL")}</label><input id="sE" type="date" value="${st.semEnd}"></div></div>
+    <div class="field"><label for="sHol">${t("holidaysL")}</label><textarea id="sHol">${esc(st.holidays)}</textarea></div>
+    <div class="acts"><div class="left"><button class="btn danger" type="button" id="sReset">${t("resetAll")}</button></div><button class="btn" value="cancel">${t("cancel")}</button><button class="btn primary" type="button" id="sSave">${t("save")}</button></div>`;
   $("sSave").onclick=()=>{
-    const h0=+$("sH0").value,h1=+$("sH1").value; if(h1<=h0){toast("끝 시간이 시작보다 늦어야 해요");return}
-    const s=$("sS").value,e=$("sE").value; if(!s||!e||e<s){toast("개강일과 종강일을 확인해주세요");return}
+    const h0=+$("sH0").value,h1=+$("sH1").value; if(h1<=h0){toast(t("endAfterStart"));return}
+    const s=$("sS").value,e=$("sE").value; if(!s||!e||e<s){toast(t("checkTerm"));return}
     Object.assign(st,{startHour:h0,endHour:h1,semName:$("sName").value.trim()||st.semName,semStart:s,semEnd:e,holidays:$("sHol").value});
     $("dlgSet").close();save();render();
   };
   let armed=false;
-  $("sReset").onclick=e=>{if(!armed){armed=true;e.target.textContent="한 번 더 누르면 모두 지워져요";return}
-    S={v:1,settings:Object.assign({},st),fixed:[],items:[],example:false};$("dlgSet").close();save();render();toast("모두 지웠어요")};
+  $("sReset").onclick=e=>{if(!armed){armed=true;e.target.textContent=t("armedReset");return}
+    S={v:1,settings:Object.assign({},st),fixed:[],items:[],example:false};$("dlgSet").close();save();render();toast(t("cleared"))};
   $("dlgSet").showModal();
 }
 
@@ -777,14 +777,14 @@ function applyReconcile(active,completed){
 }
 let syncing=false;
 async function syncFromTodoist(){
-  if(syncing)return; syncing=true; setSync("동기화 중…");
+  if(syncing)return; syncing=true; setSync(t("syncing"));
   try{
     const [a,c]=await Promise.all([postJSON("/api/list_active_tasks"),postJSON("/api/list_completed_tasks",{days:7})]);
     if(!a.ok)throw new Error(a.error||"list failed");
     applyReconcile(a.tasks||[], (c&&c.ok?c.tasks:[])||[]);
     save(); render();
-    setSync("동기화됨 "+nowHM());
-  }catch(e){setSync("동기화 실패 — 로컬 유지",true);}
+    setSync(t("synced")(nowHM()));
+  }catch(e){setSync(t("syncFail"),true);}
   finally{syncing=false;}
 }
 
@@ -796,20 +796,20 @@ async function pushCreate(item){
   if(item.repeat){const wd=["monday","tuesday","wednesday","thursday","friday","saturday","sunday"][dowOf(item.date)];let ds=item.start!=null?`every ${wd} at ${hm(item.start)}`:`every ${wd}`;if(item.repeatUntil)ds+=` until ${item.repeatUntil}`;body.due_string=ds;}
   else if(item.start!=null)body.due_datetime=item.date+"T"+hm(item.start)+":00";
   else body.due_date=item.date;
-  setSync("Todoist에 추가 중…");
+  setSync(t("addingT"));
   try{
     const d=await postJSON("/api/create_task",body);
-    if(d.ok&&d.id){item.todoistId=d.id;save();setSync("동기화됨 "+nowHM());}
-    else{setSync("추가 실패 — 로컬 유지",true);}
-  }catch(e){setSync("추가 실패 — 로컬 유지",true);}
+    if(d.ok&&d.id){item.todoistId=d.id;save();setSync(t("synced")(nowHM()));}
+    else{setSync(t("addFail"),true);}
+  }catch(e){setSync(t("addFail"),true);}
 }
 async function pushStatus(item){
   if(!item||!item.todoistId)return;
-  setSync(item.done?"완료 반영 중…":"되돌리는 중…");
+  setSync(item.done?t("completingT"):t("reopeningT"));
   try{
     const d=await postJSON("/api/set_task_status",{task_id:item.todoistId,done:!!item.done});
-    setSync(d.ok?"동기화됨 "+nowHM():"반영 실패 — 로컬 유지",!(d&&d.ok));
-  }catch(e){setSync("반영 실패 — 로컬 유지",true);}
+    setSync(d.ok?t("synced")(nowHM()):t("statusFail"),!(d&&d.ok));
+  }catch(e){setSync(t("statusFail"),true);}
 }
 async function pushSync(item){
   if(!item||item.example||item.isEvent)return;
@@ -818,15 +818,15 @@ async function pushSync(item){
   const body={task_id:item.todoistId,content:item.name};
   if(item.date){if(item.start!=null)body.due_datetime=item.date+"T"+hm(item.start)+":00";else body.due_date=item.date;}
   else{body.clear_due=true;}                                   // reverted to idea -> clear due
-  setSync("Todoist 업데이트 중…");
-  try{const d=await postJSON("/api/update_task",body);setSync((d&&d.ok)?"동기화됨 "+nowHM():"업데이트 실패 — 로컬 유지",!(d&&d.ok));}
-  catch(e){setSync("업데이트 실패 — 로컬 유지",true);}
+  setSync(t("updatingT"));
+  try{const d=await postJSON("/api/update_task",body);setSync((d&&d.ok)?t("synced")(nowHM()):t("updateFail"),!(d&&d.ok));}
+  catch(e){setSync(t("updateFail"),true);}
 }
 async function pushDelete(tid){
   if(!tid)return;
-  setSync("Todoist에서 삭제 중…");
-  try{const d=await postJSON("/api/delete_task",{task_id:tid});setSync((d&&d.ok)?"동기화됨 "+nowHM():"삭제 실패 — 로컬만 삭제",!(d&&d.ok));}
-  catch(e){setSync("삭제 실패 — 로컬만 삭제",true);}
+  setSync(t("deletingT"));
+  try{const d=await postJSON("/api/delete_task",{task_id:tid});setSync((d&&d.ok)?t("synced")(nowHM()):t("deleteFail"),!(d&&d.ok));}
+  catch(e){setSync(t("deleteFail"),true);}
 }
 
 /* ---------- language ---------- */
@@ -857,7 +857,7 @@ $("openFixed").onclick=()=>{fixedEditId=null;openFixed();$("dlgFixed").showModal
 $("openSettings").onclick=openSettings;
 $("fab").onclick=()=>quickAddAt();
 $("viewToggle").addEventListener("click",e=>{const b=e.target.closest("[data-view]");if(!b)return;S.settings.dumpView=b.dataset.view;save();render()});
-$("clearEx").onclick=()=>{S.fixed=S.fixed.filter(x=>!x.example);S.items=S.items.filter(x=>!x.example);S.example=false;save();render();toast("예시를 지웠어요")};
+$("clearEx").onclick=()=>{S.fixed=S.fixed.filter(x=>!x.example);S.items=S.items.filter(x=>!x.example);S.example=false;save();render();toast(t("clearedEx"))};
 document.addEventListener("keydown",e=>{if(e.target.closest&&e.target.closest("input,textarea,select,dialog"))return;if(e.key==="ArrowLeft")$("prevW").click();if(e.key==="ArrowRight")$("nextW").click()});
 setInterval(()=>{if(!document.querySelector("dialog[open]")&&!drag)render()},60000);
 applyLang();
