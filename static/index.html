@@ -233,7 +233,7 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:2px 0}
 
 <div class="wrap">
   <header class="bar">
-    <span class="brand">주간 플래너</span>
+    <span class="brand" id="brand">주간 플래너</span>
     <div class="week">
       <button class="btn icon" id="prevW" aria-label="이전 주">‹</button>
       <h1 id="weekLbl">—</h1>
@@ -242,7 +242,8 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:2px 0}
     </div>
     <span class="sem" id="semLbl"></span>
     <span class="spacer"></span>
-    <span class="pill" id="syncStatus" title="로컬 저장만 사용 중입니다 (Todoist 동기화는 다음 단계에서)">로컬 모드</span>
+    <button class="btn" id="langToggle">EN</button>
+    <span class="pill" id="syncStatus" title="로컬 저장만 사용 중입니다">로컬 모드</span>
     <button class="btn" id="openFixed">고정 스케줄</button>
     <button class="btn" id="openSettings">설정</button>
   </header>
@@ -253,12 +254,12 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:2px 0}
   </div>
 
   <section>
-    <div class="sec-h"><h2>Idea Dump</h2><p>날짜 미정 · 끌어다 시간표나 날짜 칸에 놓으세요</p><span class="spacer"></span><div class="view-toggle" id="viewToggle"><button data-view="free">모아보기</button><button data-view="grouped">카테고리별</button></div></div>
+    <div class="sec-h"><h2>Idea Dump</h2><p id="dumpHint">날짜 미정 · 끌어다 시간표나 날짜 칸에 놓으세요</p><span class="spacer"></span><div class="view-toggle" id="viewToggle"><button data-view="free">모아보기</button><button data-view="grouped">카테고리별</button></div></div>
     <div class="dump" id="dump"></div>
   </section>
 
   <section>
-    <div class="sec-h"><h2>Timetable</h2><p>회색 면 = 배치 불가 · 점선 = 안에 task 배치 가능 · 아래 = 날짜별 Idea (날짜만 정한 할 일)</p></div>
+    <div class="sec-h"><h2>Timetable</h2><p id="ttHint">회색 면 = 배치 불가 · 점선 = 안에 task 배치 가능 · 아래 = 날짜별 Idea (날짜만 정한 할 일)</p></div>
     <div class="tt-scroll">
       <div class="tt" id="tt"></div>
       <div class="days-grid" id="days"></div>
@@ -285,8 +286,17 @@ const CATS=[
   {id:"ra",name:"RA"},
   {id:"etc",name:"etc"}];
 const CATNAME=Object.fromEntries(CATS.map(c=>[c.id,c.name]));
-const WD=["월","화","수","목","금","토","일"];
+const WD_KO=["월","화","수","목","금","토","일"],WD_EN=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+let WD=WD_KO;
 const DURS=[30,60,90,120,150,180,210,240,300,360,420,480,540,600,660,720];
+let LANG="ko";
+const I18N={
+  ko:{brand:"주간 플래너",today:"오늘",fixed:"고정 스케줄",settings:"설정",clearEx:"예시 지우기",exBanner:"지금 보이는 수업·아이디어는 <b>예시</b>예요. 고정 스케줄에 실제 시간표를 넣고 예시는 지워주세요.",dumpHint:"날짜 미정 · 끌어다 시간표나 날짜 칸에 놓으세요",viewFree:"모아보기",viewGrouped:"카테고리별",ttHint:"회색 면 = 배치 불가 · 점선 = 안에 task 배치 가능 · 아래 = 날짜별 Idea (날짜만 정한 할 일)",datedIdea:"날짜별 Idea",langBtn:"EN",
+    name:"이름",category:"카테고리",date:"날짜",dur:"소요시간",deadline:"마감일",place:"장소",startT:"시작 시간",start:"시작",end:"종료",done:"완료",event:"일정",repeat:"매주 반복",repeatUntil:"반복 종료일",opt:" (선택)",undecided:"미정",close:"닫기",add:"추가",save:"저장",cancel:"취소",del:"삭제",backToIdea:"idea로 되돌리기",empty:"비어 있음",noIdeas:"아이디어가 없어요. 오른쪽 아래 + 버튼으로 추가하세요.",ideaLead:"idea",taskEdit:"편집",nameph:"이름",placeDoc:"예: 중앙도서관",placeRoom:"예: 대강당 101",shiftEnter:"Shift+Enter로 연달아 추가할 수 있어요.",outTerm:"기간 외",wk:n=>n+"주차",deleteConfirm:"삭제 확인",term:"학기"},
+  en:{brand:"Weekly Planner",today:"Today",fixed:"Fixed schedule",settings:"Settings",clearEx:"Clear examples",exBanner:"The classes/ideas shown are <b>examples</b>. Add your real schedule under Fixed schedule and clear them.",dumpHint:"No date yet · drag onto the timetable or a date cell",viewFree:"All",viewGrouped:"By category",ttHint:"Grey = can't place · dashed = task-placeable · below = dated ideas",datedIdea:"Dated ideas",langBtn:"한국어",
+    name:"Name",category:"Category",date:"Date",dur:"Duration",deadline:"Deadline",place:"Place",startT:"Start time",start:"Start",end:"End",done:"Done",event:"Event",repeat:"Weekly repeat",repeatUntil:"Repeat until",opt:" (optional)",undecided:"None",close:"Close",add:"Add",save:"Save",cancel:"Cancel",del:"Delete",backToIdea:"Back to idea",empty:"Empty",noIdeas:"No ideas yet. Use the + button (bottom-right).",ideaLead:"idea",taskEdit:"Edit",nameph:"Name",placeDoc:"e.g. Central Library",placeRoom:"e.g. Main Hall 101",shiftEnter:"Shift+Enter to add several.",outTerm:"out of term",wk:n=>"Week "+n,deleteConfirm:"Confirm delete",term:"term"}
+};
+function t(k){const v=I18N[LANG]&&I18N[LANG][k];return v!=null?v:(I18N.ko[k]!=null?I18N.ko[k]:k)}
 const LSKEY="weekly-planner-v1";
 
 /* ---------- date utils ---------- */
@@ -305,8 +315,8 @@ const durTxt=m=>{if(!m)return"";const h=Math.floor(m/60),r=m%60;return (h?h+"h":
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const uid=()=>Math.random().toString(36).slice(2,10);
 function dday(dl){if(!dl)return null;const n=diffDays(todayStr(),dl);return {txt:n>0?"D-"+n:n===0?"D-day":"D+"+(-n),urgent:n<=2}}
-function hourOpts(sel,a,b){let o="";for(let h=a;h<=b;h++)o+=`<option value="${h}"${sel===h?" selected":""}>${pad(h)}시</option>`;return o}
-function minOpts(sel){return [0,5,10,15,20,25,30,35,40,45,50,55].map(m=>`<option value="${m}"${sel===m?" selected":""}>${pad(m)}분</option>`).join("")}
+function hourOpts(sel,a,b){let o="";for(let h=a;h<=b;h++)o+=`<option value="${h}"${sel===h?" selected":""}>${pad(h)}${LANG==="en"?"":"시"}</option>`;return o}
+function minOpts(sel){return [0,5,10,15,20,25,30,35,40,45,50,55].map(m=>`<option value="${m}"${sel===m?" selected":""}>${pad(m)}${LANG==="en"?"":"분"}</option>`).join("")}
 function byDeadline(a,b){const x=a.deadline||"9999-99-99",y=b.deadline||"9999-99-99";return x<y?-1:x>y?1:0}
 
 /* ---------- state ---------- */
@@ -348,6 +358,7 @@ function seed(){
 let S=null;
 try{const raw=localStorage.getItem(LSKEY);if(raw)S=JSON.parse(raw)}catch(e){}
 if(!S||!S.settings)S=seed();
+LANG=S.settings.lang||"ko";
 let HOL=parseHol(S.settings.holidays||"");
 let weekStart=mondayOf(todayStr());
 
@@ -391,8 +402,8 @@ function toast(msg){let t=document.querySelector(".toast");if(!t){t=document.cre
 function undoToast(msg,cb){let t=document.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";t.setAttribute("role","status");document.body.appendChild(t)}t.innerHTML="";const s=document.createElement("span");s.textContent=msg;const b=document.createElement("button");b.className="toast-undo";b.textContent="되돌리기";b.onclick=()=>{t.hidden=true;clearTimeout(toastT);cb()};t.appendChild(s);t.appendChild(b);t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,5000)}
 function confirmDialog(msg,onYes){
   const f=document.getElementById("formConfirm");
-  f.innerHTML=`<h3>삭제 확인</h3><p class="sub">${esc(msg)}</p>
-    <div class="acts"><button class="btn" value="cancel">취소</button><button class="btn danger" type="button" id="cfYes">삭제</button></div>`;
+  f.innerHTML=`<h3>${t("deleteConfirm")}</h3><p class="sub">${esc(msg)}</p>
+    <div class="acts"><button class="btn" value="cancel">${t("cancel")}</button><button class="btn danger" type="button" id="cfYes">${t("del")}</button></div>`;
   const dlg=document.getElementById("dlgConfirm");
   document.getElementById("cfYes").onclick=()=>{dlg.close();onYes();};
   dlg.showModal();
@@ -413,9 +424,9 @@ function render(){
   $("exBanner").hidden=!S.example;
   /* header */
   const we=addDays(weekStart,6), a=parse(weekStart), b=parse(we);
-  $("weekLbl").textContent=`${a.getMonth()+1}월 ${a.getDate()}일 – ${a.getMonth()===b.getMonth()?"":(b.getMonth()+1)+"월 "}${b.getDate()}일`;
+  $("weekLbl").textContent=LANG==="en"?`${a.getMonth()+1}/${a.getDate()} – ${b.getMonth()+1}/${b.getDate()}`:`${a.getMonth()+1}월 ${a.getDate()}일 – ${a.getMonth()===b.getMonth()?"":(b.getMonth()+1)+"월 "}${b.getDate()}일`;
   const wk=Math.floor(diffDays(mondayOf(st.semStart),weekStart)/7)+1;
-  $("semLbl").textContent=(we<st.semStart||weekStart>st.semEnd)?`${st.semName} 기간 외`:`${st.semName} · ${wk}주차`;
+  $("semLbl").textContent=(we<st.semStart||weekStart>st.semEnd)?`${st.semName} ${t("outTerm")}`:`${st.semName} · ${t("wk")(wk)}`;
 
   /* dump */
   const dumpEl=$("dump"),view=st.dumpView||"free";
@@ -432,7 +443,7 @@ function render(){
   }else{
     dumpEl.className="dump-free";dumpEl.setAttribute("data-zone","dump");
     const list=S.items.filter(i=>!i.date).sort(byDeadline);
-    dumpEl.innerHTML=list.map(i=>ideaHTML(i)).join("")||`<span class="empty">아이디어가 없어요. 오른쪽 아래 + 버튼으로 추가하세요.</span>`;
+    dumpEl.innerHTML=list.map(i=>ideaHTML(i)).join("")||`<span class="empty">${t("noIdeas")}</span>`;
   }
 
   /* timetable */
@@ -465,7 +476,7 @@ function render(){
   /* day ideas */
   $("days").innerHTML=`<div class="days-lead">idea</div>`+days.map((d,k)=>{
     const list=S.items.filter(i=>i.date&&i.start==null&&itemOnDate(i,d));
-    return `<div class="day-cell" data-zone="day" data-date="${d}"><span class="lbl">${WD[k]} ${md(d)}</span>${list.map(i=>ideaHTML(i)).join("")||`<span class="empty">비어 있음</span>`}</div>`}).join("");
+    return `<div class="day-cell" data-zone="day" data-date="${d}"><span class="lbl">${WD[k]} ${md(d)}</span>${list.map(i=>ideaHTML(i)).join("")||`<span class="empty">${t("empty")}</span>`}</div>`}).join("");
 }
 
 /* ---------- quick add ---------- */
@@ -598,24 +609,24 @@ function quickAddAt(opts){
   opts=opts||{};
   const timed=opts.start!=null;
   const f=$("formAdd");
-  const title=opts.date?`${md(opts.date)}에 추가`:"추가";
+  const title=opts.date?`${md(opts.date)} · ${t("add")}`:t("add");
   f.innerHTML=`<h3>${title}</h3>
-    <div class="field"><label for="aName">이름</label><input id="aName" placeholder="이름" autocomplete="off"></div>
-    <div class="field"><span>카테고리</span><div class="catpick" id="aCat">${CATS.map((c,k)=>`<button type="button" class="cat-${c.id}${(opts.cat?c.id===opts.cat:k===0)?" on":""}" data-cat="${c.id}"><span class="sw"></span>${c.name}</button>`).join("")}</div></div>
+    <div class="field"><label for="aName">${t("name")}</label><input id="aName" placeholder="${t("nameph")}" autocomplete="off"></div>
+    <div class="field"><span>${t("category")}</span><div class="catpick" id="aCat">${CATS.map((c,k)=>`<button type="button" class="cat-${c.id}${(opts.cat?c.id===opts.cat:k===0)?" on":""}" data-cat="${c.id}"><span class="sw"></span>${c.name}</button>`).join("")}</div></div>
     <div class="row2">
-      <div class="field"><label for="aDate">날짜 (선택)</label><input id="aDate" type="date" value="${opts.date||""}"></div>
-      <div class="field"><label for="aDur">소요시간</label><select id="aDur"><option value="">미정</option>${DURS.map(m=>`<option value="${m}"${(m===60&&timed)?" selected":""}>${durTxt(m)}</option>`).join("")}</select></div>
+      <div class="field"><label for="aDate">${t("date")}${t("opt")}</label><input id="aDate" type="date" value="${opts.date||""}"></div>
+      <div class="field"><label for="aDur">${t("dur")}</label><select id="aDur"><option value="">${t("undecided")}</option>${DURS.map(m=>`<option value="${m}"${(m===60&&timed)?" selected":""}>${durTxt(m)}</option>`).join("")}</select></div>
     </div>
-    ${timed?`<div class="field"><label>시작 시간</label><div class="hm"><select id="aSH">${hourOpts(Math.floor(opts.start/60),S.settings.startHour,S.settings.endHour-1)}</select><select id="aSM">${minOpts(opts.start%60)}</select></div></div>`:``}
+    ${timed?`<div class="field"><label>${t("startT")}</label><div class="hm"><select id="aSH">${hourOpts(Math.floor(opts.start/60),S.settings.startHour,S.settings.endHour-1)}</select><select id="aSM">${minOpts(opts.start%60)}</select></div></div>`:``}
     <div class="row2">
-      <div class="field"><label for="aDl">마감일 (선택)</label><input id="aDl" type="date"></div>
-      <div class="field"><label for="aPlace">장소 (선택)</label><input id="aPlace" placeholder="예: 중앙도서관"></div>
+      <div class="field"><label for="aDl">${t("deadline")}${t("opt")}</label><input id="aDl" type="date"></div>
+      <div class="field"><label for="aPlace">${t("place")}${t("opt")}</label><input id="aPlace" placeholder="${t("placeDoc")}"></div>
     </div>
-    <label class="chkrow"><input type="checkbox" id="aEvent"> 일정</label>
-    <label class="chkrow"><input type="checkbox" id="aRepeat"> 매주 반복</label>
-    <div class="field"><label for="aUntil">반복 종료일 (선택)</label><input id="aUntil" type="date"></div>
-    <p class="sub">Shift+Enter로 연달아 추가할 수 있어요.</p>
-    <div class="acts"><button class="btn" value="cancel">닫기</button><button class="btn primary" type="button" id="aAdd">추가</button></div>`;
+    <label class="chkrow"><input type="checkbox" id="aEvent"> ${t("event")}</label>
+    <label class="chkrow"><input type="checkbox" id="aRepeat"> ${t("repeat")}</label>
+    <div class="field"><label for="aUntil">${t("repeatUntil")}${t("opt")}</label><input id="aUntil" type="date"></div>
+    <p class="sub">${t("shiftEnter")}</p>
+    <div class="acts"><button class="btn" value="cancel">${t("close")}</button><button class="btn primary" type="button" id="aAdd">${t("add")}</button></div>`;
   let cat=opts.cat||CATS[0].id;
   f.querySelectorAll("#aCat button").forEach(b=>b.onclick=()=>{cat=b.dataset.cat;f.querySelectorAll("#aCat button").forEach(x=>x.classList.toggle("on",x===b))});
   const add=(keepOpen)=>{const name=$("aName").value.trim();if(!name){$("aName").focus();return}
@@ -639,24 +650,24 @@ function timeOptions(sel){const st=S.settings;let o=`<option value="">시간 미
 function openItem(id){
   const i=byId(id); if(!i)return;
   const f=$("formItem"),placed=i.start!=null;
-  f.innerHTML=`<h3>${placed?"Task":"Idea"} 편집</h3>
-    <div class="field"><label for="eName">이름</label><input id="eName" value="${esc(i.name)}" required></div>
+  f.innerHTML=`<h3>${placed?"Task":"Idea"} ${t("taskEdit")}</h3>
+    <div class="field"><label for="eName">${t("name")}</label><input id="eName" value="${esc(i.name)}" required></div>
     <div class="row2">
-      <div class="field"><label for="eCat">카테고리</label><select id="eCat">${CATS.map(c=>`<option value="${c.id}"${c.id===i.cat?" selected":""}>${c.name}</option>`).join("")}</select></div>
-      <div class="field"><label for="eDur">소요시간</label><select id="eDur"><option value="">미정</option>${DURS.map(m=>`<option value="${m}"${i.dur===m?" selected":""}>${durTxt(m)}</option>`).join("")}${i.dur&&!DURS.includes(i.dur)?`<option value="${i.dur}" selected>${durTxt(i.dur)}</option>`:""}</select></div>
+      <div class="field"><label for="eCat">${t("category")}</label><select id="eCat">${CATS.map(c=>`<option value="${c.id}"${c.id===i.cat?" selected":""}>${c.name}</option>`).join("")}</select></div>
+      <div class="field"><label for="eDur">${t("dur")}</label><select id="eDur"><option value="">${t("undecided")}</option>${DURS.map(m=>`<option value="${m}"${i.dur===m?" selected":""}>${durTxt(m)}</option>`).join("")}${i.dur&&!DURS.includes(i.dur)?`<option value="${i.dur}" selected>${durTxt(i.dur)}</option>`:""}</select></div>
     </div>
     <div class="row2">
-      <div class="field"><label for="eDate">날짜</label><input id="eDate" type="date" value="${i.date||""}"></div>
-      <div class="field"><label for="eStartH">시작 시간</label><div class="hm"><select id="eStartH"><option value="">미정</option>${(()=>{let o="";for(let h=S.settings.startHour;h<S.settings.endHour;h++)o+=`<option value="${h}"${i.start!=null&&Math.floor(i.start/60)===h?" selected":""}>${pad(h)}시</option>`;return o;})()}</select><select id="eStartM">${[0,5,10,15,20,25,30,35,40,45,50,55].map(m=>`<option value="${m}"${i.start!=null&&i.start%60===m?" selected":""}>${pad(m)}분</option>`).join("")}</select></div></div>
+      <div class="field"><label for="eDate">${t("date")}</label><input id="eDate" type="date" value="${i.date||""}"></div>
+      <div class="field"><label for="eStartH">${t("startT")}</label><div class="hm"><select id="eStartH"><option value="">${t("undecided")}</option>${(()=>{let o="";for(let h=S.settings.startHour;h<S.settings.endHour;h++)o+=`<option value="${h}"${i.start!=null&&Math.floor(i.start/60)===h?" selected":""}>${pad(h)}${LANG==="en"?"":"시"}</option>`;return o;})()}</select><select id="eStartM">${[0,5,10,15,20,25,30,35,40,45,50,55].map(m=>`<option value="${m}"${i.start!=null&&i.start%60===m?" selected":""}>${pad(m)}${LANG==="en"?"":"분"}</option>`).join("")}</select></div></div>
     </div>
-    <div class="field"><label for="eDl">마감일 (선택)</label><input id="eDl" type="date" value="${i.deadline||""}"></div>
-    <div class="field"><label for="ePlace">장소 (선택)</label><input id="ePlace" placeholder="예: 중앙도서관" value="${esc(i.place||"")}"></div>
-    <label class="chkrow"><input type="checkbox" id="eDone" ${i.done?"checked":""}> 완료</label>
-    <label class="chkrow"><input type="checkbox" id="eEvent" ${i.isEvent?"checked":""}> 일정</label>
-    <label class="chkrow"><input type="checkbox" id="eRepeat" ${i.repeat?"checked":""}> 매주 반복</label>
-    <div class="field"><label for="eUntil">반복 종료일 (선택)</label><input id="eUntil" type="date" value="${i.repeatUntil||""}"></div>
-    <div class="acts"><div class="left">${placed?`<button class="btn" type="button" id="eBack">idea로 되돌리기</button>`:""}<button class="btn danger" type="button" id="eDel">삭제</button></div>
-    <button class="btn" value="cancel">취소</button><button class="btn primary" type="button" id="eSave">저장</button></div>`;
+    <div class="field"><label for="eDl">${t("deadline")}${t("opt")}</label><input id="eDl" type="date" value="${i.deadline||""}"></div>
+    <div class="field"><label for="ePlace">${t("place")}${t("opt")}</label><input id="ePlace" placeholder="${t("placeDoc")}" value="${esc(i.place||"")}"></div>
+    <label class="chkrow"><input type="checkbox" id="eDone" ${i.done?"checked":""}> ${t("done")}</label>
+    <label class="chkrow"><input type="checkbox" id="eEvent" ${i.isEvent?"checked":""}> ${t("event")}</label>
+    <label class="chkrow"><input type="checkbox" id="eRepeat" ${i.repeat?"checked":""}> ${t("repeat")}</label>
+    <div class="field"><label for="eUntil">${t("repeatUntil")}${t("opt")}</label><input id="eUntil" type="date" value="${i.repeatUntil||""}"></div>
+    <div class="acts"><div class="left">${placed?`<button class="btn" type="button" id="eBack">${t("backToIdea")}</button>`:""}<button class="btn danger" type="button" id="eDel">${t("del")}</button></div>
+    <button class="btn" value="cancel">${t("cancel")}</button><button class="btn primary" type="button" id="eSave">${t("save")}</button></div>`;
   const dlg=$("dlgItem");
   $("eSave").onclick=()=>{
     const name=$("eName").value.trim(); if(!name){$("eName").focus();return}
@@ -818,7 +829,27 @@ async function pushDelete(tid){
   catch(e){setSync("삭제 실패 — 로컬만 삭제",true);}
 }
 
+/* ---------- language ---------- */
+function applyLang(){
+  WD=LANG==="en"?WD_EN:WD_KO;
+  document.documentElement.lang=LANG;
+  $("brand").textContent=t("brand");
+  $("todayW").textContent=t("today");
+  $("openFixed").textContent=t("fixed");
+  $("openSettings").textContent=t("settings");
+  $("clearEx").textContent=t("clearEx");
+  $("dumpHint").textContent=t("dumpHint");
+  $("ttHint").textContent=t("ttHint");
+  $("langToggle").textContent=t("langBtn");
+  const vt=document.querySelectorAll("#viewToggle button");
+  if(vt[0])vt[0].textContent=t("viewFree");
+  if(vt[1])vt[1].textContent=t("viewGrouped");
+  const ban=document.querySelector("#exBanner span");if(ban)ban.innerHTML=t("exBanner");
+  render();
+}
+
 /* ---------- wiring ---------- */
+$("langToggle").onclick=()=>{LANG=LANG==="en"?"ko":"en";S.settings.lang=LANG;save();applyLang()};
 $("prevW").onclick=()=>{weekStart=addDays(weekStart,-7);render()};
 $("nextW").onclick=()=>{weekStart=addDays(weekStart,7);render()};
 $("todayW").onclick=()=>{weekStart=mondayOf(todayStr());render()};
@@ -829,7 +860,7 @@ $("viewToggle").addEventListener("click",e=>{const b=e.target.closest("[data-vie
 $("clearEx").onclick=()=>{S.fixed=S.fixed.filter(x=>!x.example);S.items=S.items.filter(x=>!x.example);S.example=false;save();render();toast("예시를 지웠어요")};
 document.addEventListener("keydown",e=>{if(e.target.closest&&e.target.closest("input,textarea,select,dialog"))return;if(e.key==="ArrowLeft")$("prevW").click();if(e.key==="ArrowRight")$("nextW").click()});
 setInterval(()=>{if(!document.querySelector("dialog[open]")&&!drag)render()},60000);
-render();
+applyLang();
 /* Todoist: import on load + background poll (no button needed); click status to sync now */
 $("syncStatus").style.cursor="pointer";
 $("syncStatus").title="클릭하면 지금 동기화합니다";
