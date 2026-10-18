@@ -21,7 +21,7 @@
   --blk-ink:#20252E; --blk-done-ink:#8A8F99;
   --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
-  --rowh:22px; --radius:10px;
+  --rowh:28px; --radius:10px;
   --shadow:0 1px 3px rgba(24,26,34,.05),0 1px 2px rgba(24,26,34,.04);
   --shadow-soft:0 2px 12px rgba(24,26,34,.06);
 }
@@ -394,7 +394,7 @@ const $=id=>document.getElementById(id);
 function ideaHTML(i,showDate){
   const d=dday(i.deadline),meta=[];
   if(i.dur)meta.push(durTxt(i.dur));
-  if(i.place)meta.push(`<span class="pl">📍${esc(i.place)}</span>`);
+  if(i.place)meta.push(`<span class="pl">${esc(i.place)}</span>`);
   if(i.deadline)meta.push(`<span class="dd ${d.urgent&&!i.done?"urgent":""}">${md(i.deadline)} ${d.txt}</span>`);
   return `<div class="idea cat-${i.cat}${i.done?" done":""}" draggable="true" data-item="${i.id}" tabindex="0" title="클릭해서 편집">
     <span class="nm">${esc(i.name)}</span>${meta.length?`<span class="mt">${meta.join("")}</span>`:""}</div>`;
@@ -438,12 +438,12 @@ function render(){
     let inner="";
     fixedOn(d).forEach(f=>{
       const s=Math.max(f.start,H0*60),e=Math.min(f.end,H1*60); if(e<=s)return;
-      inner+=`<div class="fx ${f.kind}" data-fx="${f.id}" data-fxdate="${d}" title="클릭하면 이 날(${md(d)})만 숨겨요" style="top:${y(s)}px;height:${y(e)-y(s)}px"><div class="fn">${esc(f.name)}</div><div class="ft">${hm(f.start)}–${hm(f.end)}</div>${f.place?`<div class="ft">📍${esc(f.place)}</div>`:""}</div>`});
+      inner+=`<div class="fx ${f.kind}" data-fx="${f.id}" data-fxdate="${d}" title="클릭하면 이 날(${md(d)})만 숨겨요" style="top:${y(s)}px;height:${y(e)-y(s)}px"><div class="fn">${esc(f.name)}</div><div class="ft">${hm(f.start)}–${hm(f.end)}</div>${f.place?`<div class="ft">${esc(f.place)}</div>`:""}</div>`});
     S.items.filter(i=>i.date===d&&i.start!=null).forEach(i=>{
       const dur=i.dur||30,s=Math.max(i.start,H0*60),e=Math.min(i.start+dur,H1*60); if(e<=s)return;
       const hpx=y(e)-y(s)-2, short=hpx<40, dd=dday(i.deadline);
       const meta=[`<span>${hm(i.start)} · ${durTxt(dur)}</span>`];
-      if(i.place)meta.push(`<span class="pl">📍${esc(i.place)}</span>`);
+      if(i.place)meta.push(`<span class="pl">${esc(i.place)}</span>`);
       if(i.deadline)meta.push(`<span class="dd ${dd.urgent&&!i.done?"urgent":""}">${md(i.deadline)} ${dd.txt}</span>`);
       inner+=`<div class="blk cat-${i.cat}${i.done?" done":""}${short?" short":""}${insideOpen(i)?" in-open":""}" style="top:${y(s)+1}px;height:${hpx}px" draggable="true" data-item="${i.id}" tabindex="0" title="${esc(i.name)} · 클릭해서 편집">
         <div class="r1"><input type="checkbox" class="chk" data-done="${i.id}" ${i.done?"checked":""} aria-label="완료"><span class="nm">${esc(i.name)}</span></div>
