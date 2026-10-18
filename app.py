@@ -155,7 +155,9 @@ async def create_task(request: Request):
     if not content:
         return JSONResponse({"ok": False, "error": "Please enter a task name."})
     args: dict = {"content": content}
-    if body.get("due_datetime"):
+    if body.get("due_string"):
+        args["due_string"] = body["due_string"]
+    elif body.get("due_datetime"):
         args["due_datetime"] = body["due_datetime"]
     elif body.get("due_date"):
         args["due_date"] = body["due_date"]

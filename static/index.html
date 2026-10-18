@@ -609,7 +609,7 @@ function quickAddAt(opts){
       <div class="field"><label for="aPlace">장소 (선택)</label><input id="aPlace" placeholder="예: 중앙도서관"></div>
     </div>
     <label class="chkrow"><input type="checkbox" id="aEvent"> 일정 (완료 체크 없음 · Todoist 미연동)</label>
-    <label class="chkrow"><input type="checkbox" id="aRepeat"> 매주 반복 (Todoist 미연동)</label>
+    <label class="chkrow"><input type="checkbox" id="aRepeat"> 매주 반복 (Todoist 반복 일정으로 생성)</label>
     <p class="sub">Shift+Enter로 연달아 추가할 수 있어요.</p>
     <div class="acts"><button class="btn" value="cancel">닫기</button><button class="btn primary" type="button" id="aAdd">추가</button></div>`;
   let cat=opts.cat||CATS[0].id;
@@ -622,7 +622,7 @@ function quickAddAt(opts){
     if(start!=null){const bad=checkSlot({id:null},date,start,dur||60);if(bad){toast("놓을 수 없어요: "+bad);return}}
     const it={id:uid(),todoistId:null,name,cat,dur,deadline:$("aDl").value||null,date,start,place:$("aPlace").value.trim()||null,isEvent,repeat,done:false,example:false};
     S.items.push(it);save();render();
-    if(it.date&&!isEvent&&!repeat)pushSync(it);
+    if(it.date&&!isEvent)pushSync(it);
     if(keepOpen){$("aName").value="";$("aName").focus()}else{$("dlgAdd").close()}
   };
   $("aAdd").onclick=()=>add(false);
@@ -649,7 +649,7 @@ function openItem(id){
     <div class="field"><label for="ePlace">장소 (선택)</label><input id="ePlace" placeholder="예: 중앙도서관" value="${esc(i.place||"")}"></div>
     <label class="chkrow"><input type="checkbox" id="eDone" ${i.done?"checked":""}> 완료</label>
     <label class="chkrow"><input type="checkbox" id="eEvent" ${i.isEvent?"checked":""}> 일정 (완료 체크 없음 · Todoist 미연동)</label>
-    <label class="chkrow"><input type="checkbox" id="eRepeat" ${i.repeat?"checked":""}> 매주 반복 (Todoist 미연동)</label>
+    <label class="chkrow"><input type="checkbox" id="eRepeat" ${i.repeat?"checked":""}> 매주 반복 (Todoist 반복 일정으로 생성)</label>
     <div class="acts"><div class="left">${placed?`<button class="btn" type="button" id="eBack">idea로 되돌리기</button>`:""}<button class="btn danger" type="button" id="eDel">삭제</button></div>
     <button class="btn" value="cancel">취소</button><button class="btn primary" type="button" id="eSave">저장</button></div>`;
   const dlg=$("dlgItem");
@@ -664,7 +664,8 @@ function openItem(id){
     Object.assign(i,{name,cat:$("eCat").value,dur,date,start,deadline:$("eDl").value||null,place:$("ePlace").value.trim()||null,isEvent:$("eEvent").checked,repeat:$("eRepeat").checked,done:$("eDone").checked});
     dlg.close();save();render();
     (async()=>{
-      if((i.isEvent||i.repeat)&&i.todoistId){const tid=i.todoistId;i.todoistId=null;save();await pushDelete(tid);}
+      if(i.isEvent&&i.todoistId){const tid=i.todoistId;i.todoistId=null;save();await pushDelete(tid);}
+      else if(i.repeat&&i.todoistId){const tid=i.todoistId;i.todoistId=null;save();await pushDelete(tid);await pushCreate(i);}
       else{await pushSync(i);if(i.todoistId&&i.done!==prevDone)await pushStatus(i);}
     })();
   };
@@ -774,9 +775,10 @@ async function syncFromTodoist(){
 /* ---------- Todoist sync (push: create / status) ---------- */
 function canonLabel(cat){return (cat&&cat!=="etc")?[CATNAME[cat]]:[]}
 async function pushCreate(item){
-  if(!item||item.example||item.todoistId||!item.date||item.isEvent||item.repeat)return;
+  if(!item||item.example||item.todoistId||!item.date||item.isEvent)return;
   const body={content:item.name,labels:canonLabel(item.cat)};
-  if(item.start!=null)body.due_datetime=item.date+"T"+hm(item.start)+":00";
+  if(item.repeat){const wd=["monday","tuesday","wednesday","thursday","friday","saturday","sunday"][dowOf(item.date)];body.due_string=item.start!=null?`every ${wd} at ${hm(item.start)}`:`every ${wd}`;}
+  else if(item.start!=null)body.due_datetime=item.date+"T"+hm(item.start)+":00";
   else body.due_date=item.date;
   setSync("Todoist에 추가 중…");
   try{
@@ -794,8 +796,9 @@ async function pushStatus(item){
   }catch(e){setSync("반영 실패 — 로컬 유지",true);}
 }
 async function pushSync(item){
-  if(!item||item.example||item.isEvent||item.repeat)return;
-  if(!item.todoistId){await pushCreate(item);return;}         // not in Todoist yet -> create
+  if(!item||item.example||item.isEvent)return;
+  if(!item.todoistId){await pushCreate(item);return;}
+  if(item.repeat)return;         // not in Todoist yet -> create
   const body={task_id:item.todoistId,content:item.name};
   if(item.date){if(item.start!=null)body.due_datetime=item.date+"T"+hm(item.start)+":00";else body.due_date=item.date;}
   else{body.clear_due=true;}                                   // reverted to idea -> clear due
