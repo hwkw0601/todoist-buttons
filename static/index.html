@@ -286,6 +286,7 @@ const CATS=[
   {id:"etc",name:"etc"}];
 const CATNAME=Object.fromEntries(CATS.map(c=>[c.id,c.name]));
 const WD=["월","화","수","목","금","토","일"];
+const DURS=[30,60,90,120,150,180,210,240,300,360,420,480,540,600,660,720];
 const LSKEY="weekly-planner-v1";
 
 /* ---------- date utils ---------- */
@@ -563,7 +564,7 @@ function placeOnGrid(item,date,start){
 function askDuration(item,cb){
   const f=$("formDur");
   f.innerHTML=`<h3>소요시간이 얼마나 걸릴까요?</h3><p class="sub">${esc(item.name)}</p>
-    <div class="chips">${[30,60,90,120,180].map(m=>`<button type="button" data-m="${m}">${durTxt(m)}</button>`).join("")}</div>
+    <div class="chips">${[30,60,90,120,180,240,360,480,600,720].map(m=>`<button type="button" data-m="${m}">${durTxt(m)}</button>`).join("")}</div>
     <div class="field"><label for="durCustom">직접 입력 (분, 30분 단위)</label><input id="durCustom" type="number" min="30" step="30" placeholder="예: 150"></div>
     <div class="acts"><button class="btn" value="cancel">취소</button><button class="btn primary" type="button" id="durOk">배치하기</button></div>`;
   const dlg=$("dlgDur");
@@ -602,7 +603,7 @@ function quickAddAt(opts){
     <div class="field"><span>카테고리</span><div class="catpick" id="aCat">${CATS.map((c,k)=>`<button type="button" class="cat-${c.id}${(opts.cat?c.id===opts.cat:k===0)?" on":""}" data-cat="${c.id}"><span class="sw"></span>${c.name}</button>`).join("")}</div></div>
     <div class="row2">
       <div class="field"><label for="aDate">날짜 (선택)</label><input id="aDate" type="date" value="${opts.date||""}"></div>
-      <div class="field"><label for="aDur">소요시간</label><select id="aDur"><option value="">미정</option>${[30,60,90,120,150,180,240].map(m=>`<option value="${m}"${(m===60&&timed)?" selected":""}>${durTxt(m)}</option>`).join("")}</select></div>
+      <div class="field"><label for="aDur">소요시간</label><select id="aDur"><option value="">미정</option>${DURS.map(m=>`<option value="${m}"${(m===60&&timed)?" selected":""}>${durTxt(m)}</option>`).join("")}</select></div>
     </div>
     ${timed?`<div class="field"><label>시작 시간</label><div class="hm"><select id="aSH">${hourOpts(Math.floor(opts.start/60),S.settings.startHour,S.settings.endHour-1)}</select><select id="aSM">${minOpts(opts.start%60)}</select></div></div>`:``}
     <div class="row2">
@@ -641,7 +642,7 @@ function openItem(id){
     <div class="field"><label for="eName">이름</label><input id="eName" value="${esc(i.name)}" required></div>
     <div class="row2">
       <div class="field"><label for="eCat">카테고리</label><select id="eCat">${CATS.map(c=>`<option value="${c.id}"${c.id===i.cat?" selected":""}>${c.name}</option>`).join("")}</select></div>
-      <div class="field"><label for="eDur">소요시간</label><select id="eDur"><option value="">미정</option>${[30,60,90,120,150,180,240,300,360].map(m=>`<option value="${m}"${i.dur===m?" selected":""}>${durTxt(m)}</option>`).join("")}${i.dur&&![30,60,90,120,150,180,240,300,360].includes(i.dur)?`<option value="${i.dur}" selected>${durTxt(i.dur)}</option>`:""}</select></div>
+      <div class="field"><label for="eDur">소요시간</label><select id="eDur"><option value="">미정</option>${DURS.map(m=>`<option value="${m}"${i.dur===m?" selected":""}>${durTxt(m)}</option>`).join("")}${i.dur&&!DURS.includes(i.dur)?`<option value="${i.dur}" selected>${durTxt(i.dur)}</option>`:""}</select></div>
     </div>
     <div class="row2">
       <div class="field"><label for="eDate">날짜</label><input id="eDate" type="date" value="${i.date||""}"></div>
