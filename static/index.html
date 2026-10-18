@@ -155,6 +155,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .blk .nm{font-size:12.5px;font-weight:500;line-height:1.3;overflow-wrap:anywhere;min-width:0}
 .blk .mt{font-family:var(--f-mono);font-size:10.5px;opacity:.8;display:flex;flex-wrap:wrap;gap:0 7px;padding-left:19px}
 .mt .pl{flex-basis:100%}
+.blk.event .mt{padding-left:0}
 .blk .dd{font-weight:500}
 .blk.done{background:var(--surface);border-color:var(--c-bd);color:var(--blk-done-ink)}
 .blk.done .nm{text-decoration:line-through}
@@ -451,7 +452,7 @@ function render(){
       const meta=[`<span>${hm(i.start)} · ${durTxt(dur)}</span>`];
       if(i.place)meta.push(`<span class="pl">${esc(i.place)}</span>`);
       if(i.deadline)meta.push(`<span class="dd ${dd.urgent&&!i.done?"urgent":""}">${md(i.deadline)} ${dd.txt}</span>`);
-      inner+=`<div class="blk cat-${i.cat}${i.done?" done":""}${short?" short":""}${insideOpen(i)?" in-open":""}" style="top:${y(s)+1}px;height:${hpx}px" draggable="true" data-item="${i.id}" tabindex="0" title="${esc(i.name)} · 클릭해서 편집">
+      inner+=`<div class="blk cat-${i.cat}${i.done?" done":""}${short?" short":""}${insideOpen(i)?" in-open":""}${i.isEvent?" event":""}" style="top:${y(s)+1}px;height:${hpx}px" draggable="true" data-item="${i.id}" tabindex="0" title="${esc(i.name)} · 클릭해서 편집">
         <div class="r1">${i.isEvent?"":`<input type="checkbox" class="chk" data-done="${i.id}" ${i.done?"checked":""} aria-label="완료">`}<span class="nm">${esc(i.name)}</span></div>
         <div class="mt">${short?(i.deadline?meta[1]:""):meta.join("")}</div></div>`});
     if(d===today){const n=new Date(),nm=n.getHours()*60+n.getMinutes(); if(nm>=H0*60&&nm<=H1*60)inner+=`<div class="nowline" style="top:${y(nm)}px"></div>`}
@@ -608,8 +609,8 @@ function quickAddAt(opts){
       <div class="field"><label for="aDl">마감일 (선택)</label><input id="aDl" type="date"></div>
       <div class="field"><label for="aPlace">장소 (선택)</label><input id="aPlace" placeholder="예: 중앙도서관"></div>
     </div>
-    <label class="chkrow"><input type="checkbox" id="aEvent"> 일정 (완료 체크 없음 · Todoist 미연동)</label>
-    <label class="chkrow"><input type="checkbox" id="aRepeat"> 매주 반복 (Todoist 반복 일정으로 생성)</label>
+    <label class="chkrow"><input type="checkbox" id="aEvent"> 일정</label>
+    <label class="chkrow"><input type="checkbox" id="aRepeat"> 매주 반복</label>
     <p class="sub">Shift+Enter로 연달아 추가할 수 있어요.</p>
     <div class="acts"><button class="btn" value="cancel">닫기</button><button class="btn primary" type="button" id="aAdd">추가</button></div>`;
   let cat=opts.cat||CATS[0].id;
@@ -648,8 +649,8 @@ function openItem(id){
     <div class="field"><label for="eDl">마감일 (선택)</label><input id="eDl" type="date" value="${i.deadline||""}"></div>
     <div class="field"><label for="ePlace">장소 (선택)</label><input id="ePlace" placeholder="예: 중앙도서관" value="${esc(i.place||"")}"></div>
     <label class="chkrow"><input type="checkbox" id="eDone" ${i.done?"checked":""}> 완료</label>
-    <label class="chkrow"><input type="checkbox" id="eEvent" ${i.isEvent?"checked":""}> 일정 (완료 체크 없음 · Todoist 미연동)</label>
-    <label class="chkrow"><input type="checkbox" id="eRepeat" ${i.repeat?"checked":""}> 매주 반복 (Todoist 반복 일정으로 생성)</label>
+    <label class="chkrow"><input type="checkbox" id="eEvent" ${i.isEvent?"checked":""}> 일정</label>
+    <label class="chkrow"><input type="checkbox" id="eRepeat" ${i.repeat?"checked":""}> 매주 반복</label>
     <div class="acts"><div class="left">${placed?`<button class="btn" type="button" id="eBack">idea로 되돌리기</button>`:""}<button class="btn danger" type="button" id="eDel">삭제</button></div>
     <button class="btn" value="cancel">취소</button><button class="btn primary" type="button" id="eSave">저장</button></div>`;
   const dlg=$("dlgItem");
