@@ -301,6 +301,8 @@ const durTxt=m=>{if(!m)return"";const h=Math.floor(m/60),r=m%60;return (h?h+"h":
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const uid=()=>Math.random().toString(36).slice(2,10);
 function dday(dl){if(!dl)return null;const n=diffDays(todayStr(),dl);return {txt:n>0?"D-"+n:n===0?"D-day":"D+"+(-n),urgent:n<=2}}
+function hourOpts(sel,a,b){let o="";for(let h=a;h<=b;h++)o+=`<option value="${h}"${sel===h?" selected":""}>${pad(h)}시</option>`;return o}
+function minOpts(sel){return [0,5,10,15,20,25,30,35,40,45,50,55].map(m=>`<option value="${m}"${sel===m?" selected":""}>${pad(m)}분</option>`).join("")}
 
 /* ---------- state ---------- */
 const DEFAULT_HOL=`2026-09-24 추석 연휴
@@ -391,6 +393,7 @@ const $=id=>document.getElementById(id);
 function ideaHTML(i,showDate){
   const d=dday(i.deadline),meta=[];
   if(i.dur)meta.push(durTxt(i.dur));
+  if(i.place)meta.push(`<span>📍${esc(i.place)}</span>`);
   if(i.deadline)meta.push(`<span class="dd ${d.urgent&&!i.done?"urgent":""}">${md(i.deadline)} ${d.txt}</span>`);
   return `<div class="idea cat-${i.cat}${i.done?" done":""}" draggable="true" data-item="${i.id}" tabindex="0" title="클릭해서 편집">
     <span class="nm">${esc(i.name)}</span>${meta.length?`<span class="mt">${meta.join("")}</span>`:""}</div>`;
@@ -434,11 +437,12 @@ function render(){
     let inner="";
     fixedOn(d).forEach(f=>{
       const s=Math.max(f.start,H0*60),e=Math.min(f.end,H1*60); if(e<=s)return;
-      inner+=`<div class="fx ${f.kind}" data-fx="${f.id}" data-fxdate="${d}" title="클릭하면 이 날(${md(d)})만 숨겨요" style="top:${y(s)}px;height:${y(e)-y(s)}px"><div class="fn">${esc(f.name)}</div><div class="ft">${hm(f.start)}–${hm(f.end)}</div></div>`});
+      inner+=`<div class="fx ${f.kind}" data-fx="${f.id}" data-fxdate="${d}" title="클릭하면 이 날(${md(d)})만 숨겨요" style="top:${y(s)}px;height:${y(e)-y(s)}px"><div class="fn">${esc(f.name)}</div><div class="ft">${hm(f.start)}–${hm(f.end)}${f.place?` · ${esc(f.place)}`:""}</div></div>`});
     S.items.filter(i=>i.date===d&&i.start!=null).forEach(i=>{
       const dur=i.dur||30,s=Math.max(i.start,H0*60),e=Math.min(i.start+dur,H1*60); if(e<=s)return;
       const hpx=y(e)-y(s)-2, short=hpx<40, dd=dday(i.deadline);
       const meta=[`<span>${hm(i.start)} · ${durTxt(dur)}</span>`];
+      if(i.place)meta.push(`<span>📍${esc(i.place)}</span>`);
       if(i.deadline)meta.push(`<span class="dd ${dd.urgent&&!i.done?"urgent":""}">${md(i.deadline)} ${dd.txt}</span>`);
       inner+=`<div class="blk cat-${i.cat}${i.done?" done":""}${short?" short":""}${insideOpen(i)?" in-open":""}" style="top:${y(s)+1}px;height:${hpx}px" draggable="true" data-item="${i.id}" tabindex="0" title="${esc(i.name)} · 클릭해서 편집">
         <div class="r1"><input type="checkbox" class="chk" data-done="${i.id}" ${i.done?"checked":""} aria-label="완료"><span class="nm">${esc(i.name)}</span></div>
@@ -621,6 +625,7 @@ function openItem(id){
       <div class="field"><label for="eStartH">시작 시간</label><div class="hm"><select id="eStartH"><option value="">미정</option>${(()=>{let o="";for(let h=S.settings.startHour;h<S.settings.endHour;h++)o+=`<option value="${h}"${i.start!=null&&Math.floor(i.start/60)===h?" selected":""}>${pad(h)}시</option>`;return o;})()}</select><select id="eStartM">${[0,5,10,15,20,25,30,35,40,45,50,55].map(m=>`<option value="${m}"${i.start!=null&&i.start%60===m?" selected":""}>${pad(m)}분</option>`).join("")}</select></div></div>
     </div>
     <div class="field"><label for="eDl">마감일 (선택)</label><input id="eDl" type="date" value="${i.deadline||""}"></div>
+    <div class="field"><label for="ePlace">장소 (선택)</label><input id="ePlace" placeholder="예: 중앙도서관" value="${esc(i.place||"")}"></div>
     <label style="display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" id="eDone" ${i.done?"checked":""}> 완료</label>
     <div class="acts"><div class="left">${placed?`<button class="btn" type="button" id="eBack">idea로 되돌리기</button>`:""}<button class="btn danger" type="button" id="eDel">삭제</button></div>
     <button class="btn" value="cancel">취소</button><button class="btn primary" type="button" id="eSave">저장</button></div>`;
@@ -633,7 +638,7 @@ function openItem(id){
       const bad=checkSlot(i,date,start,dur); if(bad){toast("놓을 수 없어요: "+bad);return}
     }
     const prevDone=i.done;
-    Object.assign(i,{name,cat:$("eCat").value,dur,date,start,deadline:$("eDl").value||null,done:$("eDone").checked});
+    Object.assign(i,{name,cat:$("eCat").value,dur,date,start,deadline:$("eDl").value||null,place:$("ePlace").value.trim()||null,done:$("eDone").checked});
     dlg.close();save();render();
     (async()=>{
       await pushSync(i);
@@ -653,11 +658,12 @@ function openFixed(){
   const editing=fixedEditId?S.fixed.find(x=>x.id===fixedEditId):null;
   const list=[...S.fixed].sort((a,b)=>Math.min(...a.dows)-Math.min(...b.dows)||a.start-b.start);
   f.innerHTML=`<h3>고정 스케줄</h3><p class="sub">${esc(S.settings.semName)} 개강일부터 종강일까지 매주 반복되고, 공휴일에는 표시되지 않아요. 항목을 누르면 수정할 수 있어요.</p>
-    <div class="fx-list">${list.map(x=>`<div class="fx-item${x.id===fixedEditId?" editing":""}" data-editfx="${x.id}"><span class="k ${x.kind}"></span><span>${esc(x.name)}</span><span class="t">${x.dows.map(d=>WD[d]).join("·")} ${hm(x.start)}–${hm(x.end)}</span><button type="button" class="x" data-delfx="${x.id}" aria-label="${esc(x.name)} 삭제">×</button></div>${(x.skip&&x.skip.length)?`<div class="fx-skips">숨긴 날: ${[...x.skip].sort().map(dt=>`<button type="button" class="fx-restore" data-restorefx="${x.id}" data-date="${dt}">${md(dt)} ↩</button>`).join("")}</div>`:""}`).join("")||`<span class="empty">아직 없어요. 아래에서 수업이나 근무 시간을 추가하세요.</span>`}</div>
+    <div class="fx-list">${list.map(x=>`<div class="fx-item${x.id===fixedEditId?" editing":""}" data-editfx="${x.id}"><span class="k ${x.kind}"></span><span>${esc(x.name)}</span><span class="t">${x.dows.map(d=>WD[d]).join("·")} ${hm(x.start)}–${hm(x.end)}${x.place?` · ${esc(x.place)}`:""}</span><button type="button" class="x" data-delfx="${x.id}" aria-label="${esc(x.name)} 삭제">×</button></div>${(x.skip&&x.skip.length)?`<div class="fx-skips">숨긴 날: ${[...x.skip].sort().map(dt=>`<button type="button" class="fx-restore" data-restorefx="${x.id}" data-date="${dt}">${md(dt)} ↩</button>`).join("")}</div>`:""}`).join("")||`<span class="empty">아직 없어요. 아래에서 수업이나 근무 시간을 추가하세요.</span>`}</div>
     <hr class="sep">
     <div class="field"><label for="fName">${editing?`수정 중: ${esc(editing.name)}`:"이름"}</label><input id="fName" placeholder="예: 경제원론 (대강당 101)" value="${editing?esc(editing.name):""}"></div>
     <div class="field"><span>요일</span><div class="dows">${WD.map((w,k)=>`<label><input type="checkbox" value="${k}" name="fDow"${editing&&editing.dows.includes(k)?" checked":""}>${w}</label>`).join("")}</div></div>
-    <div class="row2"><div class="field"><label for="fS">시작</label><input id="fS" type="time" step="300" value="${editing?hm(editing.start):"09:00"}"></div><div class="field"><label for="fE">종료</label><input id="fE" type="time" step="300" value="${editing?hm(editing.end):"10:15"}"></div></div>
+    <div class="row2"><div class="field"><label>시작</label><div class="hm"><select id="fSH">${hourOpts(editing?Math.floor(editing.start/60):9,0,24)}</select><select id="fSM">${minOpts(editing?editing.start%60:0)}</select></div></div><div class="field"><label>종료</label><div class="hm"><select id="fEH">${hourOpts(editing?Math.floor(editing.end/60):10,0,24)}</select><select id="fEM">${minOpts(editing?editing.end%60:15)}</select></div></div></div>
+    <div class="field"><label for="fPlace">장소 (선택)</label><input id="fPlace" placeholder="예: 대강당 101" value="${editing?esc(editing.place||""):""}"></div>
     <div class="kinds">
       <label><input type="radio" name="fKind" value="solid"${!editing||editing.kind==="solid"?" checked":""} hidden><span class="demo solid"></span><span>배치 불가<small>수업처럼 task를 넣을 수 없는 시간</small></span></label>
       <label><input type="radio" name="fKind" value="open"${editing&&editing.kind==="open"?" checked":""} hidden><span class="demo open"></span><span>배치 가능<small>공강·근무처럼 안에 task를 넣는 시간</small></span></label>
@@ -668,14 +674,14 @@ function openFixed(){
   f.querySelectorAll("[data-restorefx]").forEach(b=>b.onclick=ev=>{ev.stopPropagation();const fo=S.fixed.find(x=>x.id===b.dataset.restorefx);if(fo&&fo.skip)fo.skip=fo.skip.filter(d=>d!==b.dataset.date);save();render();openFixedRefresh()});
   if(editing)$("fCancelEdit").onclick=()=>{fixedEditId=null;openFixedRefresh()};
   $("fAdd").onclick=()=>{
-    const name=$("fName").value.trim(),dows=[...f.querySelectorAll("[name=fDow]:checked")].map(x=>+x.value),s=toMin($("fS").value||"0:0"),e=toMin($("fE").value||"0:0");
+    const name=$("fName").value.trim(),dows=[...f.querySelectorAll("[name=fDow]:checked")].map(x=>+x.value),s=(+$("fSH").value)*60+(+$("fSM").value),e=(+$("fEH").value)*60+(+$("fEM").value),place=$("fPlace").value.trim();
     if(!name){$("fName").focus();toast("이름을 적어주세요");return}
     if(!dows.length){toast("요일을 하나 이상 골라주세요");return}
     if(e<=s){toast("종료 시간이 시작보다 늦어야 해요");return}
     const conflict=fixedOverlap({dows,start:s,end:e},fixedEditId);
     if(conflict){toast(`'${conflict.name}'과(와) 시간이 겹쳐요`);return}
-    if(fixedEditId){const it=S.fixed.find(x=>x.id===fixedEditId);if(it){Object.assign(it,{name,dows,start:s,end:e,kind:f.querySelector("[name=fKind]:checked").value});delete it.example}fixedEditId=null;}
-    else{S.fixed.push({id:uid(),name,dows,start:s,end:e,kind:f.querySelector("[name=fKind]:checked").value});}
+    if(fixedEditId){const it=S.fixed.find(x=>x.id===fixedEditId);if(it){Object.assign(it,{name,dows,start:s,end:e,kind:f.querySelector("[name=fKind]:checked").value,place});delete it.example}fixedEditId=null;}
+    else{S.fixed.push({id:uid(),name,dows,start:s,end:e,kind:f.querySelector("[name=fKind]:checked").value,place});}
     save();render();openFixedRefresh();toast("저장했어요");
   };
 }
