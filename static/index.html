@@ -106,6 +106,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* idea chip */
 .idea{display:flex;flex-direction:column;gap:1px;background:var(--c-bg);border:1.5px solid transparent;border-radius:10px;padding:6px 10px;cursor:grab;color:var(--blk-ink);min-width:0}
 .idea.done{background:var(--surface);border-color:var(--c-bd);color:var(--muted)}
+.itop{display:flex;align-items:center;gap:6px;justify-content:space-between}
+.itop .nm{flex:1;min-width:0}
+.cbadge{font-size:10px;font-weight:500;padding:1px 7px;border-radius:99px;background:color-mix(in srgb,var(--c-bd) 20%,transparent);color:var(--c-bd);white-space:nowrap;flex:none}
 .idea:active{cursor:grabbing}
 .idea .nm{font-size:13px;font-weight:500;overflow-wrap:anywhere}
 .idea .mt{font-family:var(--f-mono);font-size:11px;opacity:.75;display:flex;gap:8px;flex-wrap:wrap}
@@ -187,6 +190,8 @@ dialog::backdrop{background:color-mix(in srgb,#0B0D12 45%,transparent)}
 .field input,.field select,.field textarea{background:var(--bg);border:1px solid var(--line-strong);border-radius:5px;padding:7px 9px;color:var(--ink);font-size:14px;min-width:0}
 .field textarea{font-family:var(--f-mono);font-size:12.5px;min-height:120px;resize:vertical}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hm{display:flex;gap:6px}
+.hm select{flex:1;min-width:0}
 .acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;position:sticky;bottom:0;z-index:1;background:var(--surface);margin:2px -18px -16px;padding:10px 18px 14px;border-top:1px solid var(--line)}
 .acts .left{margin-right:auto;display:flex;gap:8px;flex-wrap:wrap}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -379,7 +384,7 @@ function ideaHTML(i,showDate){
   if(i.dur)meta.push(durTxt(i.dur));
   if(i.deadline)meta.push(`<span class="dd ${d.urgent&&!i.done?"urgent":""}">${md(i.deadline)} ${d.txt}</span>`);
   return `<div class="idea cat-${i.cat}${i.done?" done":""}" draggable="true" data-item="${i.id}" tabindex="0" title="클릭해서 편집">
-    <span class="nm">${esc(i.name)}</span>${meta.length?`<span class="mt">${meta.join("")}</span>`:""}</div>`;
+    <div class="itop"><span class="nm">${esc(i.name)}</span><span class="cbadge">${esc(CATNAME[i.cat]||"")}</span></div>${meta.length?`<span class="mt">${meta.join("")}</span>`:""}</div>`;
 }
 function render(){
   const st=S.settings,today=todayStr();
@@ -456,7 +461,7 @@ document.addEventListener("click",e=>{
   const c=e.target.closest("[data-done]");
   if(c){e.stopPropagation();const i=byId(c.dataset.done);if(i){i.done=c.checked;save();render();pushStatus(i)}return}
   const fx=e.target.closest("[data-fx]");
-  if(fx&&!e.target.closest("dialog")){const f=S.fixed.find(x=>x.id===fx.dataset.fx);const dt=fx.dataset.fxdate;if(f){(f.skip=f.skip||[]).push(dt);save();render();undoToast(`'${f.name}' ${md(dt)}만 숨김`,()=>{f.skip=(f.skip||[]).filter(x=>x!==dt);save();render();});}return}
+  if(fx&&!e.target.closest("dialog")){const f=S.fixed.find(x=>x.id===fx.dataset.fx);const dt=fx.dataset.fxdate;if(f&&confirm(`'${f.name}' — ${md(dt)} 이 날짜만 삭제할까요?`)){(f.skip=f.skip||[]).push(dt);save();render();undoToast(`'${f.name}' ${md(dt)}만 숨김`,()=>{f.skip=(f.skip||[]).filter(x=>x!==dt);save();render();});}return}
   const it=e.target.closest("[data-item]");
   if(it&&!e.target.closest("dialog")){openItem(it.dataset.item);return}
   if(e.target.closest("dialog"))return;
@@ -554,8 +559,8 @@ function openAdd(){
   f.innerHTML=`<h3>아이디어 추가</h3><p class="sub">이름과 카테고리만 정하면 Idea Dump로 들어가요.</p>
     <div class="field"><label for="aName">이름</label><input id="aName" placeholder="할 일 이름" autocomplete="off"></div>
     <div class="field"><span>카테고리</span><div class="catpick" id="aCat">${CATS.map((c,k)=>`<button type="button" class="cat-${c.id}${k===0?" on":""}" data-cat="${c.id}"><span class="sw"></span>${c.name}</button>`).join("")}</div></div>
-    <div class="acts"><button class="btn" value="cancel">닫기</button><button class="btn primary" type="button" id="aAdd">추가</button></div>
-    <p class="sub" style="margin-top:-2px">Shift+Enter로 연달아 추가할 수 있어요.</p>`;
+    <p class="sub">Shift+Enter로 연달아 추가할 수 있어요.</p>
+    <div class="acts"><button class="btn" value="cancel">닫기</button><button class="btn primary" type="button" id="aAdd">추가</button></div>`;
   let cat=CATS[0].id;
   f.querySelectorAll("#aCat button").forEach(b=>b.onclick=()=>{cat=b.dataset.cat;f.querySelectorAll("#aCat button").forEach(x=>x.classList.toggle("on",x===b))});
   const add=(keepOpen)=>{const name=$("aName").value.trim();if(!name){$("aName").focus();return}
@@ -604,7 +609,7 @@ function openItem(id){
     </div>
     <div class="row2">
       <div class="field"><label for="eDate">날짜</label><input id="eDate" type="date" value="${i.date||""}"></div>
-      <div class="field"><label for="eStart">시작 시간</label><input id="eStart" type="time" step="300" value="${i.start!=null?hm(i.start):""}"></div>
+      <div class="field"><label for="eStartH">시작 시간</label><div class="hm"><select id="eStartH"><option value="">미정</option>${(()=>{let o="";for(let h=S.settings.startHour;h<S.settings.endHour;h++)o+=`<option value="${h}"${i.start!=null&&Math.floor(i.start/60)===h?" selected":""}>${pad(h)}시</option>`;return o;})()}</select><select id="eStartM">${[0,5,10,15,20,25,30,35,40,45,50,55].map(m=>`<option value="${m}"${i.start!=null&&i.start%60===m?" selected":""}>${pad(m)}분</option>`).join("")}</select></div></div>
     </div>
     <div class="field"><label for="eDl">마감일 (선택)</label><input id="eDl" type="date" value="${i.deadline||""}"></div>
     <label style="display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" id="eDone" ${i.done?"checked":""}> 완료</label>
@@ -613,7 +618,7 @@ function openItem(id){
   const dlg=$("dlgItem");
   $("eSave").onclick=()=>{
     const name=$("eName").value.trim(); if(!name){$("eName").focus();return}
-    const dur=$("eDur").value?+$("eDur").value:null, date=$("eDate").value||null, sv=$("eStart").value, start=(date&&sv)?toMin(sv):null;
+    const dur=$("eDur").value?+$("eDur").value:null, date=$("eDate").value||null, sh=$("eStartH").value, start=(date&&sh!=="")?(+sh*60+(+$("eStartM").value||0)):null;
     if(start!=null){
       if(!dur){toast("시간표에 놓으려면 소요시간을 정해주세요");$("eDur").focus();return}
       const bad=checkSlot(i,date,start,dur); if(bad){toast("놓을 수 없어요: "+bad);return}
