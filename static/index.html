@@ -106,7 +106,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* idea chip */
 .idea{display:flex;flex-direction:column;gap:1px;background:var(--c-bg);border:1.5px solid transparent;border-radius:10px;padding:6px 10px;cursor:grab;color:var(--blk-ink);min-width:0}
 .idea.done{background:var(--surface);border-color:var(--c-bd);color:var(--muted)}
-.itop{display:flex;align-items:center;gap:6px;justify-content:space-between}
+.itop{display:flex;align-items:center;gap:6px}
 .itop .nm{flex:1;min-width:0}
 .cbadge{font-size:10px;font-weight:500;padding:1px 7px;border-radius:99px;background:color-mix(in srgb,var(--c-bd) 20%,transparent);color:var(--c-bd);white-space:nowrap;flex:none}
 .idea:active{cursor:grabbing}
@@ -307,6 +307,7 @@ const uid=()=>Math.random().toString(36).slice(2,10);
 function dday(dl){if(!dl)return null;const n=diffDays(todayStr(),dl);return {txt:n>0?"D-"+n:n===0?"D-day":"D+"+(-n),urgent:n<=2}}
 function hourOpts(sel,a,b){let o="";for(let h=a;h<=b;h++)o+=`<option value="${h}"${sel===h?" selected":""}>${pad(h)}시</option>`;return o}
 function minOpts(sel){return [0,5,10,15,20,25,30,35,40,45,50,55].map(m=>`<option value="${m}"${sel===m?" selected":""}>${pad(m)}분</option>`).join("")}
+function byDeadline(a,b){const x=a.deadline||"9999-99-99",y=b.deadline||"9999-99-99";return x<y?-1:x>y?1:0}
 
 /* ---------- state ---------- */
 const DEFAULT_HOL=`2026-09-24 추석 연휴
@@ -405,7 +406,7 @@ function ideaHTML(i,showDate){
   if(i.place)meta.push(`<span class="pl">${esc(i.place)}</span>`);
   if(i.deadline)meta.push(`<span class="dd ${d.urgent&&!i.done?"urgent":""}">${md(i.deadline)} ${d.txt}</span>`);
   return `<div class="idea cat-${i.cat}${i.done?" done":""}" draggable="true" data-item="${i.id}" tabindex="0" title="클릭해서 편집">
-    <span class="nm">${esc(i.name)}</span>${meta.length?`<span class="mt">${meta.join("")}</span>`:""}</div>`;
+    <div class="itop">${i.isEvent?"":`<input type="checkbox" class="chk" data-done="${i.id}" ${i.done?"checked":""} aria-label="완료">`}<span class="nm">${esc(i.name)}</span></div>${meta.length?`<span class="mt">${meta.join("")}</span>`:""}</div>`;
 }
 function render(){
   const st=S.settings,today=todayStr();
@@ -422,7 +423,7 @@ function render(){
   if(view==="grouped"){
     dumpEl.className="dump";dumpEl.removeAttribute("data-zone");
     dumpEl.innerHTML=CATS.map(c=>{
-      const list=S.items.filter(i=>i.cat===c.id&&!i.date);
+      const list=S.items.filter(i=>i.cat===c.id&&!i.date).sort(byDeadline);
       return `<div class="cat-col cat-${c.id}" data-zone="dump" data-cat="${c.id}">
         <div class="cat-title"><span class="sw"></span>${c.name}<span class="n">${list.length}</span></div>
         ${list.map(i=>ideaHTML(i)).join("")}
@@ -430,7 +431,7 @@ function render(){
       </div>`}).join("");
   }else{
     dumpEl.className="dump-free";dumpEl.setAttribute("data-zone","dump");
-    const list=S.items.filter(i=>!i.date);
+    const list=S.items.filter(i=>!i.date).sort(byDeadline);
     dumpEl.innerHTML=list.map(i=>ideaHTML(i)).join("")||`<span class="empty">아이디어가 없어요. 오른쪽 아래 + 버튼으로 추가하세요.</span>`;
   }
 
