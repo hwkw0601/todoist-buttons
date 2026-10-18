@@ -381,7 +381,7 @@ function fixedOverlap(cand,excludeId){
 }
 function itemOnDate(i,d){
   if(i.date===d)return true;
-  if(i.repeat&&i.date&&d>=i.date&&dowOf(i.date)===dowOf(d))return true;
+  if(i.repeat&&i.date&&d>=i.date&&dowOf(i.date)===dowOf(d)&&(!i.repeatUntil||d<=i.repeatUntil))return true;
   return false;
 }
 let toastT;
@@ -611,6 +611,7 @@ function quickAddAt(opts){
     </div>
     <label class="chkrow"><input type="checkbox" id="aEvent"> 일정</label>
     <label class="chkrow"><input type="checkbox" id="aRepeat"> 매주 반복</label>
+    <div class="field"><label for="aUntil">반복 종료일 (선택)</label><input id="aUntil" type="date"></div>
     <p class="sub">Shift+Enter로 연달아 추가할 수 있어요.</p>
     <div class="acts"><button class="btn" value="cancel">닫기</button><button class="btn primary" type="button" id="aAdd">추가</button></div>`;
   let cat=opts.cat||CATS[0].id;
@@ -619,9 +620,9 @@ function quickAddAt(opts){
     const date=$("aDate").value||null;
     const start=(timed&&date)?((+$("aSH").value)*60+(+$("aSM").value)):null;
     const dur=$("aDur").value?+$("aDur").value:(start!=null?60:null);
-    const isEvent=$("aEvent").checked, repeat=$("aRepeat").checked;
+    const isEvent=$("aEvent").checked, repeat=$("aRepeat").checked, repeatUntil=$("aUntil").value||null;
     if(start!=null){const bad=checkSlot({id:null},date,start,dur||60);if(bad){toast("놓을 수 없어요: "+bad);return}}
-    const it={id:uid(),todoistId:null,name,cat,dur,deadline:$("aDl").value||null,date,start,place:$("aPlace").value.trim()||null,isEvent,repeat,done:false,example:false};
+    const it={id:uid(),todoistId:null,name,cat,dur,deadline:$("aDl").value||null,date,start,place:$("aPlace").value.trim()||null,isEvent,repeat,repeatUntil,done:false,example:false};
     S.items.push(it);save();render();
     if(it.date&&!isEvent)pushSync(it);
     if(keepOpen){$("aName").value="";$("aName").focus()}else{$("dlgAdd").close()}
@@ -651,6 +652,7 @@ function openItem(id){
     <label class="chkrow"><input type="checkbox" id="eDone" ${i.done?"checked":""}> 완료</label>
     <label class="chkrow"><input type="checkbox" id="eEvent" ${i.isEvent?"checked":""}> 일정</label>
     <label class="chkrow"><input type="checkbox" id="eRepeat" ${i.repeat?"checked":""}> 매주 반복</label>
+    <div class="field"><label for="eUntil">반복 종료일 (선택)</label><input id="eUntil" type="date" value="${i.repeatUntil||""}"></div>
     <div class="acts"><div class="left">${placed?`<button class="btn" type="button" id="eBack">idea로 되돌리기</button>`:""}<button class="btn danger" type="button" id="eDel">삭제</button></div>
     <button class="btn" value="cancel">취소</button><button class="btn primary" type="button" id="eSave">저장</button></div>`;
   const dlg=$("dlgItem");
@@ -662,7 +664,7 @@ function openItem(id){
       const bad=checkSlot(i,date,start,dur); if(bad){toast("놓을 수 없어요: "+bad);return}
     }
     const prevDone=i.done;
-    Object.assign(i,{name,cat:$("eCat").value,dur,date,start,deadline:$("eDl").value||null,place:$("ePlace").value.trim()||null,isEvent:$("eEvent").checked,repeat:$("eRepeat").checked,done:$("eDone").checked});
+    Object.assign(i,{name,cat:$("eCat").value,dur,date,start,deadline:$("eDl").value||null,place:$("ePlace").value.trim()||null,isEvent:$("eEvent").checked,repeat:$("eRepeat").checked,repeatUntil:$("eUntil").value||null,done:$("eDone").checked});
     dlg.close();save();render();
     (async()=>{
       if(i.isEvent&&i.todoistId){const tid=i.todoistId;i.todoistId=null;save();await pushDelete(tid);}
@@ -778,7 +780,7 @@ function canonLabel(cat){return (cat&&cat!=="etc")?[CATNAME[cat]]:[]}
 async function pushCreate(item){
   if(!item||item.example||item.todoistId||!item.date||item.isEvent)return;
   const body={content:item.name,labels:canonLabel(item.cat)};
-  if(item.repeat){const wd=["monday","tuesday","wednesday","thursday","friday","saturday","sunday"][dowOf(item.date)];body.due_string=item.start!=null?`every ${wd} at ${hm(item.start)}`:`every ${wd}`;}
+  if(item.repeat){const wd=["monday","tuesday","wednesday","thursday","friday","saturday","sunday"][dowOf(item.date)];let ds=item.start!=null?`every ${wd} at ${hm(item.start)}`:`every ${wd}`;if(item.repeatUntil)ds+=` until ${item.repeatUntil}`;body.due_string=ds;}
   else if(item.start!=null)body.due_datetime=item.date+"T"+hm(item.start)+":00";
   else body.due_date=item.date;
   setSync("Todoist에 추가 중…");
